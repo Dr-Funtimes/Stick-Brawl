@@ -2477,10 +2477,16 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Escape'){
     const dc=document.getElementById('dev-console');
     if(dc&&dc.style.display!=='none'&&dc.style.display!==''){closeDevConsole();return;}
+    if(game&&game.tutorialFight){ cancelAnimationFrame(animId); animId=null; game=null;
+      save.tutorialSeen=true; doSave();
+      document.getElementById('controls-hint').classList.add('hidden');
+      showScreen('title-screen'); return; }
     if(game)togglePause();
   }
   if(e.code==='KeyF'&&!inInput){toggleFullscreen();}
   _tutHandleKey(e.code);
+  // Track special used during tutorial fight
+  if(game && game.tutorialFight && (e.code==='Comma'||e.code==='KeyH') && tutFightPhase===4) game._tutSpecialFired=true;
 
   // Angus moveset switching -- P1: 7/8/9/0, P2: 1/2/3/4
   if(game){
@@ -3577,10 +3583,10 @@ let tutFightPhaseLock = false; // brief lock after phase advances
 
 const TUT_FIGHT_PHASES = [
   { task:'MOVE  ◀ ▶  close to Bruiser',     hint:'Arrow keys to move',                   check:(p1,p2)=>Math.abs((p1.x+p1.w/2)-(p2.x+p2.w/2))<160 },
-  { task:'JUMP!  Press UP  (or double-tap)', hint:'Arrow UP — tap twice for double jump',  check:(p1)=>p1.jumps>0 || !p1.onGround },
+  { task:'JUMP! — Press UP arrow',           hint:'Up arrow to jump, press again mid-air for double jump', check:(p1)=>p1.jumps>0 },
   { task:'ATTACK!  Press SPACE',             hint:'Get close and hit SPACE',               check:(p1,p2)=>p2.dmg>2 },
-  { task:'BLOCK!  Press .  (period)',        hint:'Hold . to block — Bruiser attacks now!',check:(p1)=>p1.blkTimer>0, cpuActive:true },
-  { task:'SPECIAL!  Press ,  (comma)',       hint:'Fire your special move',                check:(p1,p2)=>p2.dmg>20 },
+  { task:'BLOCK! — Hold . (period)',          hint:'Hold . to block — Bruiser will punch you!', check:(p1)=>p1.blkTimer>0, cpuActive:true, forceAttack:true },
+  { task:'SPECIAL! — Press , (comma)',        hint:'Press comma to fire your special attack', check:(p1,p2,g)=>!!(g&&g._tutSpecialFired) },
   { task:'FREE FIGHT — knock Bruiser off!',  hint:'Full fight! Bruiser is now active.',    check:()=>false, cpuActive:true, free:true },
 ];
 
@@ -3637,6 +3643,10 @@ function tutFightTick(){
     if(game.p2.onGround) game.p2.vy = Math.min(0, game.p2.vy);
     game.p2.atkTimer = Math.max(game.p2.atkTimer, 8);
     game.p2.spCool   = Math.max(game.p2.spCool, 8);
+  } else if(ph.forceAttack){
+    // Force CPU to attack immediately in block phase
+    game.p2.atkTimer = 0;
+    game.p2.cpuT = 0; // reset interval so it acts this frame
   }
 
   // If practice phase, freeze CPU
@@ -3646,6 +3656,9 @@ function tutFightTick(){
     p2.atkTimer = Math.max(p2.atkTimer, 5);
     p2.spCool   = Math.max(p2.spCool,   5);
   }
+
+  // Bruiser always faces player
+  if(p1 && p2) game.p2.facing = p2.x > p1.x ? -1 : 1;
 
   // Advance phase on success
   if(!tutFightPhaseDone && !tutFightPhaseLock && ph.check(p1, p2, game)){
@@ -3658,8 +3671,8 @@ function tutFightTick(){
       tutFightPhase = Math.min(tutFightPhase+1, TUT_FIGHT_PHASES.length-1);
       tutFightPhaseDone = false;
       tutFightPhaseLock = false;
-      // Reset opponent dmg on certain phase advances so checks stay clean
-      if(tutFightPhase === 4) game.p2.dmg = 0; // reset for special-hit check
+      // Reset special flag when entering special phase
+      if(tutFightPhase === 4 && game) { game.p2.dmg = 0; game._tutSpecialFired = false; }
     }, 900);
   }
 }
@@ -3689,13 +3702,13 @@ function renderTutorialFightHUD(){
     ctx.fillStyle = '#33ff99';
     const pulse = 0.7 + 0.3*Math.abs(Math.sin(now*0.008));
     ctx.globalAlpha = pulse;
-    ctx.fillText('✓  NICE!  Next up...', W/2, barY+14);
+    ctx.fillText('DONE! Next task in a moment...', W/2, barY+19);
     ctx.globalAlpha = 1;
   } else {
     ctx.fillStyle = '#ffd700';
     ctx.fillText(ph.task, W/2, barY+13);
     ctx.font = '5px "Press Start 2P"';
-    ctx.fillStyle = '#7777aa';
+    ctx.fillStyle = '#8888cc';
     ctx.fillText(ph.hint, W/2, barY+28);
   }
 
@@ -5196,7 +5209,8 @@ function getMvAtkProps(ch){
   else if(ch.spd <= 3) props.push('Slow startup');
   if(ch.id==='alien') props.push('Double hit — both deal full damage','Wide 100px arc range','Fast 20-frame startup');
   if(ch.id==='tank'||ch.id==='titan') props.push('Guard break');
-  if(ch.id==='phantom') props.push('Ignores blocks');
+  if(ch.id==='pha
+ntom') props.push('Ignores blocks');
   if(ch.id==='boxer') props.push('Two hits');
   if(ch.id==='samurai') props.push('Long reach');
   return props;
@@ -8227,6 +8241,11 @@ function scUpdateFlying(f,W2,H2){
   if(KEYS['ArrowUp']||KEYS['KeyW'])   f.ship.vy=Math.max(-5,f.ship.vy-0.5);
   else if(KEYS['ArrowDown']||KEYS['KeyS']) f.ship.vy=Math.min(5,f.ship.vy+0.5);
   else f.ship.vy*=0.84;
+  if(!f.ship.vx) f.ship.vx=0;
+  if(KEYS['ArrowLeft']||KEYS['KeyA'])  f.ship.vx=Math.max(-3,f.ship.vx-0.4);
+  else if(KEYS['ArrowRight']||KEYS['KeyD']) f.ship.vx=Math.min(3,f.ship.vx+0.4);
+  else f.ship.vx*=0.8;
+  f.ship.x=Math.max(30,Math.min(W2*0.55,f.ship.x+f.ship.vx)); // keep left half
   f.ship.y=Math.max(18,Math.min(H2-18,f.ship.y+f.ship.vy));
 
   // Auto-fire cannons
@@ -8238,6 +8257,18 @@ function scUpdateFlying(f,W2,H2){
     for(let i=0;i<streams;i++){
       f.bullets.push({x:f.ship.x+70,y:f.ship.y+(i-(streams-1)/2)*12,vx:11+f.stats.spd*0.3,vy:0,life:55,col:'#ffdd00',dmg:2+f.stats.atk});
     }
+  }
+  // Dodge roll (SPACE) - brief invincibility
+  if(!f.ship.dodgeCool) f.ship.dodgeCool=0;
+  if(!f.ship.dodgeTimer) f.ship.dodgeTimer=0;
+  if(f.ship.dodgeTimer>0){ f.ship.dodgeTimer--; }
+  if(f.ship.dodgeCool>0){ f.ship.dodgeCool--; }
+  if(JP['Space']&&f.ship.dodgeCool<=0&&f.ship.dodgeTimer<=0){
+    f.ship.dodgeTimer=22; f.ship.dodgeCool=55;
+    // Dodge burst: flash + speed boost
+    const dDir = (KEYS['ArrowUp']||KEYS['KeyW'])?-1:(KEYS['ArrowDown']||KEYS['KeyS'])?1:0;
+    f.ship.vy += dDir*4;
+    scFlashParts(f,f.ship.x,f.ship.y,'#44aaff',8);
   }
   // Missile auto-fire
   if(f.ship.hasMissile){ f.ship.missileCool--; if(f.ship.missileCool<=0){ f.ship.missileCool=90; f.missiles.push({x:f.ship.x+70,y:f.ship.y,vx:6,vy:0,life:120,col:'#ff2244',tracking:true}); } }
@@ -8274,6 +8305,22 @@ function scUpdateFlying(f,W2,H2){
   }
   f.particles=f.particles.filter(p=>{ p.x+=p.vx;p.y+=p.vy;p.life--;return p.life>0; });
 
+  // Shield regen (1 point every 3 seconds)
+  if(f.stats.shield>0&&f.ship.shield<f.ship.maxShield&&f.t%180===0) f.ship.shield=Math.min(f.ship.maxShield,f.ship.shield+1);
+  // Power-up movement and pickup
+  if(!f.powerups) f.powerups=[];
+  f.powerups=f.powerups.filter(pu=>{
+    pu.x+=pu.vx; pu.y+=pu.vy; pu.life--;
+    if(pu.life<=0||pu.x<-40) return false;
+    if(Math.abs(pu.x-f.ship.x)<28&&Math.abs(pu.y-f.ship.y)<22){
+      if(pu.type==='hp')  f.ship.hp=Math.min(f.ship.maxHp,f.ship.hp+12);
+      if(pu.type==='shield') f.ship.shield=Math.min(f.ship.maxShield,f.ship.shield+10);
+      if(pu.type==='score') f.score+=500*(1+f.wave*0.2);
+      scFlashParts(f,pu.x,pu.y,pu.col,6);
+      return false;
+    }
+    return true;
+  });
   // Combo decay
   if(f.comboTimer>0) f.comboTimer--;
   else if(f.combo>0) f.combo=0;
@@ -8382,24 +8429,30 @@ function scUpdateWave(f,W2,H2){
         f.enemyBullets.push({x:a.x-a.size,y:a.y,vx:(dx/dist)*spd*0.85,vy:(dy/dist)*spd*0.85+i*2,life:100,col:a.col,dmg:a.dmg*0.6});
     }
 
-    // Player bullets hit alien
-    f.bullets=f.bullets.filter(b=>{
-      if(Math.abs(b.x-a.x)<a.size+4&&Math.abs(b.y-a.y)<a.size+4&&a.hp>0){
+  });
+
+  // Bullet-alien collision: check each bullet against all aliens (not inside alien loop)
+  f.bullets=f.bullets.filter(b=>{
+    for(let ai=0;ai<f.aliens.length;ai++){
+      const a=f.aliens[ai];
+      if(a.hp>0&&Math.abs(b.x-a.x)<a.size+4&&Math.abs(b.y-a.y)<a.size+4){
         a.hp-=b.dmg||5;
         scFlashParts(f,a.x,a.y,a.col,3);
         if(a.hp<=0) scKillAlien(f,a);
-        return false;
+        return false; // bullet consumed
       }
-      return true;
-    });
+    }
+    return true;
   });
-
+  // Aliens that escape off-screen left count as misses but still clear the wave
+  f.aliens.forEach(a=>{ if(a.hp>0&&a.x<=-80){ f.waveKills++; scFlashParts(f,-40,a.y,'#333366',4); } });
   f.aliens=f.aliens.filter(a=>a.hp>0&&a.x>-80);
 
   // Enemy bullets hit ship
   f.enemyBullets=f.enemyBullets.filter(b=>{
     b.x+=b.vx; b.y+=b.vy; b.life--;
     if(b.x<-20||b.life<=0) return false;
+    if(f.ship.dodgeTimer>0){ return true; } // invincible during dodge
     if(Math.abs(b.x-f.ship.x)<34&&Math.abs(b.y-f.ship.y)<22){
       const d=b.dmg||5;
       if(f.ship.shield>0){ f.ship.shield=Math.max(0,f.ship.shield-d); }
@@ -8422,11 +8475,18 @@ function scUpdateWave(f,W2,H2){
 
 function scKillAlien(f,a){
   scFlashParts(f,a.x,a.y,a.col,12);
-  // Big explosion ring
   f.particles.push({x:a.x,y:a.y,vx:0,vy:0,life:20,max:20,col:a.col,ring:a.size*2,ringGrow:1.8});
-  f.score+=a.pts*(1+f.wave*0.1);
+  f.score+=Math.round(a.pts*(1+f.wave*0.1)*(1+(f.combo>4?0.5:0)));
   f.combo++; f.comboTimer=120;
   f.waveKills++;
+  // Random power-up drop (20% chance)
+  if(Math.random()<0.20){
+    if(!f.powerups) f.powerups=[];
+    const types=['hp','shield','score'];
+    const t=types[Math.floor(Math.random()*types.length)];
+    f.powerups.push({x:a.x,y:a.y,vx:-1.2,vy:(Math.random()-0.5)*1.5,type:t,life:300,
+      col:t==='hp'?'#ff4466':t==='shield'?'#44aaff':'#ffd700'});
+  }
 }
 
 function scFlashParts(f,x,y,col,n){
@@ -8444,7 +8504,7 @@ const SC_COMBAT_CHARS=[
   {id:'alien_elite',   name:'ALIEN ELITE',   col:'#ffaa00',acc:'#ffe066',spd:9,pwr:8,jmp:9,base:true},
   {id:'alien_titan',   name:'ALIEN TITAN',   col:'#ff2244',acc:'#ff88aa',spd:6,pwr:10,jmp:6,base:true},
   {id:'alien',         name:'ALIEN OVERLORD',col:'#00ffcc',acc:'#88ffee',spd:9,pwr:9,jmp:10,base:false,scUnlock:true},
-  {id:'alien',         name:'ALIEN OVERLORD',col:'#00ffcc',acc:'#88ffee',spd:9,pwr:9,jmp:10,base:false,scUnlock:true}, // waves 7+
+  {id:'alien_elite',   name:'SHADOW VANGUARD', col:'#ff44cc',acc:'#ffaaee',spd:9,pwr:9,jmp:8, base:true},
   {id:'alien_titan',   name:'ALIEN TITAN II', col:'#ff0066',acc:'#ff88cc',spd:7,pwr:10,jmp:7,base:true},
   {id:'alien_elite',   name:'ALIEN ELITE ACE',col:'#ff6600',acc:'#ffaa44',spd:10,pwr:9,jmp:9,base:true},
   {id:'alien',         name:'OVERLORD PRIME', col:'#ffffff',acc:'#00ffcc',spd:10,pwr:10,jmp:10,base:false,scUnlock:true},
@@ -8461,14 +8521,14 @@ function scStartCombatBattle(f){
     p2char=alienChar;
     const _scStages=['space','neon','dungeon','storm','volcano','sky','castle','ruins','arctic','forest'];
     selStage=STAGES.find(s=>s.id===_scStages[(f.wave-1)%_scStages.length])||STAGES[f.wave%STAGES.length];
-    // Save and override settings for combat — restore on endGame
+    // Save settings into game object so endGame can restore them
     const _scSavedLives=save.settings.lives;
     const _scSavedDiff=save.settings.diff;
     const _scSavedMode=save.settings.mode;
     const _scSavedAutoRematch=save.settings.autoRematch;
     save.settings.mode='cpu';
     save.settings.lives=1;
-    save.settings.autoRematch='off'; // prevent auto-rematch during spacecraft combat
+    save.settings.autoRematch='off';
 
     const plats=makePlatforms(selStage);
     const p1=makePlayer(f.heroChar,200,false);
@@ -8545,6 +8605,19 @@ function scStartCombatBattle(f){
 // ── RENDER ────────────────────────────────────────────────────────────────
 
 function scRenderFlight(f,W2,H2){
+  // Render power-ups
+  if(f.powerups) f.powerups.forEach(pu=>{
+    const blink = pu.life<60 && Math.floor(pu.life/6)%2===0;
+    if(blink) return;
+    f.ctx.save();
+    f.ctx.globalAlpha=0.85;
+    f.ctx.fillStyle=pu.col;
+    f.ctx.fillRect(pu.x-7,pu.y-7,14,14);
+    f.ctx.strokeStyle='#fff';f.ctx.lineWidth=1;f.ctx.strokeRect(pu.x-7,pu.y-7,14,14);
+    f.ctx.font='5px "Press Start 2P"';f.ctx.fillStyle='#fff';f.ctx.textAlign='center';f.ctx.textBaseline='middle';
+    f.ctx.fillText(pu.type==='hp'?'H':pu.type==='shield'?'S':'$',pu.x,pu.y);
+    f.ctx.globalAlpha=1; f.ctx.restore();
+  });
   const ctx2=f.ctx;
   // Deep space background
   ctx2.fillStyle='#02020e'; ctx2.fillRect(0,0,W2,H2);
@@ -8565,6 +8638,30 @@ function scRenderFlight(f,W2,H2){
     ctx2.fillRect(s.x,s.y,s.sz,s.sz);
   });
   ctx2.globalAlpha=1;
+
+  // Titan health bars above titans
+  f.aliens.filter(a=>a.type==='titan').forEach(a=>{
+    const bw=64,bh=5;
+    ctx2.fillStyle='rgba(0,0,0,0.75)'; ctx2.fillRect(a.x-bw/2,a.y-a.size-13,bw,bh);
+    const pct=Math.max(0,a.hp/a.maxHp);
+    ctx2.fillStyle=pct>0.5?'#ff3333':pct>0.25?'#ff7700':'#ff0000';
+    ctx2.fillRect(a.x-bw/2,a.y-a.size-13,bw*pct,bh);
+    ctx2.strokeStyle='#440000';ctx2.lineWidth=1;ctx2.strokeRect(a.x-bw/2,a.y-a.size-13,bw,bh);
+    ctx2.font='4px "Press Start 2P"';ctx2.fillStyle='#ff8888';ctx2.textAlign='center';ctx2.textBaseline='bottom';
+    ctx2.fillText('TITAN',a.x,a.y-a.size-14);
+  });
+
+  // Power-ups render
+  if(f.powerups) f.powerups.forEach(pu=>{
+    if(pu.life<60&&Math.floor(pu.life/6)%2===0) return;
+    ctx2.save();
+    ctx2.fillStyle=pu.col; ctx2.globalAlpha=0.9;
+    ctx2.fillRect(pu.x-7,pu.y-7,14,14);
+    ctx2.strokeStyle='#ffffff';ctx2.lineWidth=1;ctx2.strokeRect(pu.x-7,pu.y-7,14,14);
+    ctx2.font='5px "Press Start 2P"';ctx2.fillStyle='#fff';ctx2.textAlign='center';ctx2.textBaseline='middle';
+    ctx2.fillText(pu.type==='hp'?'H':pu.type==='shield'?'S':'$',pu.x,pu.y);
+    ctx2.globalAlpha=1;ctx2.restore();
+  });
 
   // Particles
   f.particles=f.particles.filter(p=>{
@@ -8621,7 +8718,13 @@ function scRenderFlight(f,W2,H2){
   // Aliens — pixel art per type
   f.aliens.forEach(a=>scDrawAlienShip(ctx2,a,f.t));
 
-  // Player ship
+  // Player ship (dodge flash)
+  if(f.ship.dodgeTimer>0){
+    ctx2.save(); ctx2.globalAlpha=0.3+0.25*Math.abs(Math.sin(f.t*0.5));
+    ctx2.fillStyle='#44aaff';
+    ctx2.beginPath(); ctx2.ellipse(f.ship.x,f.ship.y,52,30,0,0,Math.PI*2); ctx2.fill();
+    ctx2.globalAlpha=1; ctx2.restore();
+  }
   scDrawShipOnCtx(ctx2, f.shipCells, f.ship.x, f.ship.y, SC_CS*0.45, f.t);
 
   // Shield bubble
@@ -8639,11 +8742,13 @@ function scRenderFlight(f,W2,H2){
   if(hudEl){
     const hpPct=f.ship.hp/f.ship.maxHp;
     const hpCol=hpPct>0.6?'#00ff66':hpPct>0.3?'#ffaa00':'#ff3333';
+    const dodgeReady=(!f.ship.dodgeCool||f.ship.dodgeCool<=0);
     hudEl.innerHTML=
-      '<div><span style="color:#00ccff">W'+f.wave+'/'+f.totalWaves+'</span>  <span style="color:#ffd700">★'+Math.floor(f.score)+'</span>'+(f.combo>2?'  <span style="color:#ff8800">×'+f.combo+' COMBO</span>':'')+'</div>'+
+      '<div><span style="color:#00ccff">WAVE '+f.wave+'/'+f.totalWaves+'</span>  <span style="color:#ffd700">'+Math.floor(f.score)+' pts</span>'+(f.combo>2?'  <span style="color:#ff8800">x'+f.combo+' COMBO</span>':'')+'</div>'+
       '<div><span style="color:'+hpCol+'">HP '+Math.ceil(f.ship.hp)+'/'+f.ship.maxHp+'</span>'+
-      (f.ship.maxShield>0?'  <span style="color:#00ff88">SH '+Math.ceil(f.ship.shield)+'/'+f.ship.maxShield+'</span>':'')+
-      '  <span style="color:#445;font-size:5px;">▲▼ dodge</span></div>';
+      (f.ship.maxShield>0?'  <span style="color:#00ff88">  SH '+Math.ceil(f.ship.shield)+'/'+f.ship.maxShield+'</span>':'')+
+      (dodgeReady?'  <span style="color:#44aaff">SPACE=ROLL</span>':'  <span style="color:#334466">ROLL COOLING</span>')+
+      '</div>';
   }
 
   // HP bars as visual strips at bottom
