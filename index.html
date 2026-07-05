@@ -207,8 +207,8 @@ canvas{display:block;image-rendering:pixelated;}
       <button class="psquare-btn" style="width:86px;height:86px;border-color:#ff8800;--accent-col:#ff8800;" onclick="gotoTournamentSetup()">
         <span class="psq-icon">🏆</span><span class="psq-text" style="color:#ff8800;">TOURNAMENT</span>
       </button>
-      <button class="psquare-btn" style="width:86px;height:86px;border-color:#00ccff;--accent-col:#00ccff;" onclick="startSpacecraftMode()">
-        <span class="psq-icon">🚀</span><span class="psq-text" style="color:#00ccff;">SPACECRAFT</span>
+      <button class="psquare-btn" style="width:86px;height:86px;border-color:#886600;--accent-col:#886600;" onclick="showScreen('spacecraft-down-screen')">
+        <span class="psq-icon">🚧</span><span class="psq-text" style="color:#cc9933;">UNDER CONSTRUCTION</span>
       </button>
       <button class="psquare-btn" style="width:86px;height:86px;border-color:#ff3333;--accent-col:#ff3333;" onclick="startHordeMode()">
         <span class="psq-icon">⚔</span><span class="psq-text" style="color:#ff3333;">HORDE</span>
@@ -1353,6 +1353,18 @@ canvas{display:block;image-rendering:pixelated;}
 
 
   <!-- CREDITS -->
+  <div id="spacecraft-down-screen" class="screen hidden" style="background:radial-gradient(ellipse at center,#1a1200 0%,#000000 100%);justify-content:center;align-items:center;">
+    <div style="text-align:center;padding:20px;max-width:500px;">
+      <div style="font-size:32px;margin-bottom:16px;">🚧</div>
+      <div style="font-size:11px;color:#ffaa33;text-shadow:0 0 16px #ffaa33,3px 3px 0 #663300;margin-bottom:22px;letter-spacing:2px;">SPACECRAFT MODE</div>
+      <div style="font-size:6px;color:#ddccaa;line-height:2.4;margin-bottom:30px;">
+        Spacecraft mode is currently down,<br>but will return soon!<br><br>
+        Sorry for the inconvenience.<br>-Angus
+      </div>
+      <button class="menu-btn" onclick="showScreen('title-screen')">◀ BACK</button>
+    </div>
+  </div>
+
   <div id="credits-screen" class="screen hidden" style="background:radial-gradient(ellipse at center,#080010 0%,#000000 100%);justify-content:center;align-items:center;">
     <div style="text-align:center;padding:20px;max-width:500px;">
       <div style="font-size:10px;color:#ffd700;text-shadow:0 0 20px #ffd700,3px 3px 0 #aa7700;margin-bottom:6px;letter-spacing:3px;animation:pulse 2s infinite;">STICK BRAWL</div>
@@ -1541,9 +1553,8 @@ const ACHIEVEMENTS = [
   { id:'horde_god',    name:'HORDE GOD',         desc:'Survive 200 waves in Horde Mode',         icon:'☠',  check:s=>(s.hordeRecord||0)>=200 },
   { id:'rich',         name:'COIN HOARDER',      desc:'Accumulate 2000 coins',                   icon:'💰',  check:s=>(s.coins||0)>=2000 },
   { id:'collector',    name:'COLLECTOR',         desc:'Unlock 10 fighters',                      icon:'👥',  check:s=>(s.unlocked||[]).length>=10 },
-  { id:'completionist',name:'COMPLETIONIST',     desc:'Unlock every fighter (coins + modes)',           icon:'🌟',  check:s=>CHARS.filter(c=>!c.base&&!c.achievementUnlock).every(ch=>(s.unlocked||[]).includes(ch.id)) },
+  { id:'completionist',name:'COMPLETIONIST',     desc:'Unlock every fighter (coins + modes)',           icon:'🌟',  check:s=>CHARS.filter(c=>!c.base&&!c.achievementUnlock&&!c.scUnlock).every(ch=>(s.unlocked||[]).includes(ch.id)) },
   { id:'tournament',   name:'TOURNAMENT CHAMP',  desc:'Win a Tournament',                        icon:'🏆',  check:s=>(s.unlocked||[]).includes('trophy') },
-  { id:'space_hero',   name:'SPACE HERO',        desc:'Complete Spacecraft Mode',                icon:'🚀',  check:s=>(s.unlocked||[]).includes('alien') },
   { id:'custom_made',  name:'CUSTOM MADE',       desc:'Create a custom fighter',                 icon:'✏',  check:s=>(s.customs||[]).length>=1 },
   { id:'high_roller',  name:'HIGH ROLLER',       desc:'Win a fight at 200% damage',              icon:'🔥',  check:s=>!!(s.highRollerWin) },
   { id:'speedrunner',  name:'SPEEDRUNNER',       desc:'Complete a Story fight in under 30 seconds', icon:'⚡', check:s=>!!(s.speedrunAch) },
@@ -1555,20 +1566,18 @@ const ACHIEVEMENTS = [
   { id:'creator_pro',  name:'MASTER CREATOR',    desc:'Create 5 custom fighters',                 icon:'🎨',  check:s=>(s.customs||[]).length>=5 },
   { id:'two_player',   name:'TWO PLAYER GLORY',  desc:'Win a local 2-Player match',                icon:'🤝',  check:s=>!!(s.pvpWin) },
   { id:'omega_slayer', name:'OMEGA SLAYER',      desc:'Defeat OMEGA in battle',                    icon:'💥',  check:s=>!!(s.omegaDefeated) },
-  { id:'ace_pilot',    name:'ACE PILOT',         desc:'Finish Spacecraft Mode without ship damage', icon:'🛸',  check:s=>!!(s.scFlawless) },
-  { id:'titan_slayer', name:'TITAN SLAYER',      desc:'Destroy a Titan-class enemy in Spacecraft', icon:'⚙',  check:s=>!!(s.titanKilled) },
-  { id:'high_score',   name:'HIGH SCORE',        desc:'Score 15,000+ in one Spacecraft run',       icon:'📈',  check:s=>(s.scHighScore||0)>=15000 },
 ];
 
 const TOTAL_COMPLETABLES = ()=>{
   // Characters (non-omega, non-base) + achievements
-  const chars = CHARS.filter(c=>!c.base&&!c.achievementUnlock).length;
+  // NOTE: scUnlock characters (Alien Overlord) excluded while Spacecraft Mode is down
+  const chars = CHARS.filter(c=>!c.base&&!c.achievementUnlock&&!c.scUnlock).length;
   const achs = ACHIEVEMENTS.length;
   return chars + achs;
 };
 
 const EARNED_COMPLETABLES = ()=>{
-  const unlockedChars = CHARS.filter(c=>!c.base&&!c.achievementUnlock&&(save.unlocked||[]).includes(c.id)).length;
+  const unlockedChars = CHARS.filter(c=>!c.base&&!c.achievementUnlock&&!c.scUnlock&&(save.unlocked||[]).includes(c.id)).length;
   const earnedAchs = (save.achievements||[]).length;
   return unlockedChars + earnedAchs;
 };
@@ -5171,7 +5180,8 @@ function drawBar(bx,by,bw,bh,p,col,flip){
     ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.strokeRect(bx,gaugeY,bw,gaugeH);
     ctx.fillStyle=gCol;ctx.globalAlpha=0.7+0.3*Math.abs(Math.sin(now*0.006));
     ctx.font='5px "Press Start 2P"';ctx.textAlign='center';
-    ctx.fillText('HYPER READY! '+(flip?'[V]':'[ENTER]'),bx+bw/2,gaugeY+gaugeH+8);
+    ctx.fillText('HYPER READY! '+(flip?'[V]':'[EN
+TER]'),bx+bw/2,gaugeY+gaugeH+8);
     ctx.globalAlpha=1;
   }
 }
@@ -5185,8 +5195,7 @@ let mvAnimFrame = 0;
 let mvAnimAction = 'idle';
 let mvAnimTimer = 0;
 let mvAnimCycle = ['idle','idle','idle','attack','idle','idle','special','idle','idle','block','idle'];
-let
- mvAnimCycleIdx = 0;
+let mvAnimCycleIdx = 0;
 
 function showMovesetViewer(){
   showScreen('movesets-screen');
