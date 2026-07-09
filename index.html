@@ -183,7 +183,7 @@ canvas{display:block;image-rendering:pixelated;}
       <div style="font-family:'Press Start 2P',monospace;font-size:32px;color:#ffd700;text-shadow:4px 4px 0 #aa7700,0 0 30px rgba(255,215,0,0.6);letter-spacing:4px;margin-bottom:8px;">STICK BRAWL</div>
       <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#3399ff;letter-spacing:2px;margin-bottom:40px;">PIXEL FIGHTER</div>
       <div id="cts-blink" style="font-family:'Press Start 2P',monospace;font-size:8px;color:#ffffff;letter-spacing:1px;animation:pulse 1.2s infinite;">✦ CLICK ANYWHERE TO START ✦</div>
-      <div style="font-family:'Press Start 2P',monospace;font-size:5px;color:#333355;margin-top:20px;">Version 1.4 — Sunset Update</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:5px;color:#333355;margin-top:20px;">Version 1.5 — Sunrise Update</div>
     </div>
   </div>
   <div id="focus-overlay" style="position:absolute;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.0);pointer-events:none;">
@@ -195,6 +195,11 @@ canvas{display:block;image-rendering:pixelated;}
   <div id="title-screen" class="screen hidden" style="justify-content:center;padding:8px 16px;">
     <div class="title-logo" id="title-logo" title="...">STICK BRAWL</div>
     <div class="title-sub">PIXEL FIGHTER</div>
+
+    <div id="weekly-event-banner" style="width:100%;max-width:460px;margin:6px 0 10px;padding:6px 10px;border:2px solid #ffaa00;background:rgba(255,170,0,0.08);text-align:center;cursor:pointer;" onclick="showWeeklyEventInfo()">
+      <div style="font-size:5px;color:#888;letter-spacing:1px;">THIS WEEK'S EVENT</div>
+      <div id="weekly-event-name" style="font-size:8px;color:#ffaa00;text-shadow:0 0 8px #ffaa00;margin-top:2px;">...</div>
+    </div>
 
     <!-- Main buttons (large pixel squares) -->
     <div class="title-grid-main">
@@ -248,6 +253,9 @@ canvas{display:block;image-rendering:pixelated;}
       <button class="psquare-btn sm" style="width:72px;height:56px;border-color:#00ccff;--accent-col:#00ccff;" onclick="toggleFullscreen()" title="Toggle fullscreen (F)">
         <span class="psq-icon">⛶</span><span class="psq-text" style="color:#00ccff;">FULLSCR</span>
       </button>
+      <button class="psquare-btn sm" style="width:72px;height:56px;border-color:#ff8800;--accent-col:#ff8800;" onclick="showBrawlCodeScreen()">
+        <span class="psq-icon">📱</span><span class="psq-text" style="color:#ff8800;">BRAWL CODE</span>
+      </button>
     </div>
 
     <div style="font-size:6px;color:var(--gray)">COINS: <span id="title-coins" style="color:var(--gold)">0</span></div>
@@ -265,7 +273,7 @@ canvas{display:block;image-rendering:pixelated;}
     <div id="trophy-badge" style="display:none;font-size:5px;color:#ffd700;margin-top:2px;text-shadow:0 0 6px #ffd700;">🏆 TOURNAMENT CHAMPION — TROPHY UNLOCKED ✦</div>
     <div id="space-badge" style="display:none;font-size:5px;color:#00ffcc;margin-top:2px;text-shadow:0 0 8px #00ffcc;">🚀 SPACE HERO — ALIEN OVERLORD UNLOCKED ✦</div>
     <div id="omega-badge" style="display:none;font-size:5px;color:#cc00ff;margin-top:2px;text-shadow:0 0 8px #cc00ff;animation:pulse 1s infinite;">👑 ALL ACHIEVEMENTS — OMEGA UNLOCKED ✦</div>
-  <div style="position:absolute;bottom:8px;right:10px;font-size:5px;color:#333344;font-family:'Press Start 2P',monospace;pointer-events:none;">Version 1.4 — Sunset Update!</div>
+  <div style="position:absolute;bottom:8px;right:10px;font-size:5px;color:#333344;font-family:'Press Start 2P',monospace;pointer-events:none;">Version 1.5 — Sunrise Update!</div>
   </div>
 
 
@@ -615,6 +623,15 @@ canvas{display:block;image-rendering:pixelated;}
         <div class="set-panel-title">⚔ MATCH</div>
 
         <div class="set-group">
+          <div class="set-label">WEEKLY EVENTS</div>
+          <div class="set-hint">Gameplay-twist events, Regular Battles only</div>
+          <div class="set-row">
+            <button class="set-btn danger" id="weeklyevents-off" onclick="setSetting('weeklyEvents','off')">OFF</button>
+            <button class="set-btn good" id="weeklyevents-on"  onclick="setSetting('weeklyEvents','on')">ON</button>
+          </div>
+        </div>
+
+        <div class="set-group">
           <div class="set-label">STOCK LIVES</div>
           <div class="set-row">
             <button class="set-btn" id="lives-1"  onclick="setSetting('lives',1)">1</button>
@@ -869,6 +886,15 @@ canvas{display:block;image-rendering:pixelated;}
       <!-- ╚══════════════╝ -->
       <div class="set-panel" style="--panel-col:#cc44ff;">
         <div class="set-panel-title">🖥 DISPLAY</div>
+
+        <div class="set-group">
+          <div class="set-label">VISUAL EFFECTS</div>
+          <div class="set-hint">Master switch — particles, shake, flash, combo popups</div>
+          <div class="set-row">
+            <button class="set-btn danger" id="vfx-off" onclick="setSetting('vfx','off')">OFF</button>
+            <button class="set-btn good" id="vfx-on"  onclick="setSetting('vfx','on')">ON</button>
+          </div>
+        </div>
 
         <div class="set-group">
           <div class="set-label">PARTICLE EFFECTS</div>
@@ -1353,6 +1379,39 @@ canvas{display:block;image-rendering:pixelated;}
 
 
   <!-- CREDITS -->
+  <div id="brawl-code-screen" class="screen hidden" style="background:radial-gradient(ellipse at center,#1a1000 0%,#000000 100%);justify-content:center;align-items:center;overflow-y:auto;">
+    <div style="text-align:center;padding:20px;max-width:480px;width:100%;">
+      <div style="font-size:5px;color:#888;letter-spacing:2px;margin-bottom:6px;">MOBILE EDITION LINK</div>
+      <div style="font-size:12px;color:#ff8800;text-shadow:0 0 14px #ff8800;margin-bottom:18px;letter-spacing:2px;">BRAWL CODE</div>
+
+      <div style="font-size:5px;color:#aaa;margin-bottom:6px;">YOUR CODE — enter this in Mobile Edition</div>
+      <div id="brawl-code-display" style="font-size:22px;color:#ffffff;letter-spacing:6px;background:#1a1200;border:2px solid #ff8800;padding:12px 10px;margin-bottom:10px;">------</div>
+      <button class="menu-btn sm" style="margin-bottom:22px;" onclick="copyBrawlCode()">📋 COPY CODE</button>
+
+      <div style="height:1px;background:linear-gradient(90deg,transparent,#443322,transparent);margin-bottom:20px;"></div>
+
+      <div style="font-size:5px;color:#aaa;margin-bottom:6px;">REDEEM A CODE — from Mobile Edition, unlock RELAY A + 600 coins</div>
+      <input id="brawl-code-input" maxlength="6" placeholder="ABCD12" style="font-family:'Press Start 2P',monospace;font-size:12px;letter-spacing:4px;text-align:center;text-transform:uppercase;
+        background:#0a0a1a;border:2px solid #443322;color:#ffd700;padding:10px;width:180px;margin-bottom:10px;" />
+      <div>
+        <button class="menu-btn gold" onclick="redeemBrawlCode()">REDEEM</button>
+      </div>
+      <div id="brawl-code-msg" style="font-size:5px;color:#888;margin-top:10px;min-height:14px;"></div>
+
+      <button class="menu-btn" style="margin-top:20px;" onclick="showScreen('title-screen')">◀ BACK</button>
+    </div>
+  </div>
+
+  <div id="event-info-screen" class="screen hidden" style="background:radial-gradient(ellipse at center,#1a1400 0%,#000000 100%);justify-content:center;align-items:center;">
+    <div style="text-align:center;padding:20px;max-width:500px;">
+      <div style="font-size:5px;color:#888;letter-spacing:2px;margin-bottom:8px;">THIS WEEK'S EVENT</div>
+      <div id="event-info-name" style="font-size:14px;margin-bottom:20px;letter-spacing:2px;">...</div>
+      <div id="event-info-desc" style="font-size:6px;color:#ccc;line-height:2.2;margin-bottom:28px;"></div>
+      <div style="font-size:5px;color:#555;margin-bottom:24px;">A new event begins every week -- check back often.</div>
+      <button class="menu-btn" onclick="showScreen('title-screen')">◀ BACK</button>
+    </div>
+  </div>
+
   <div id="spacecraft-down-screen" class="screen hidden" style="background:radial-gradient(ellipse at center,#1a1200 0%,#000000 100%);justify-content:center;align-items:center;">
     <div style="text-align:center;padding:20px;max-width:500px;">
       <div style="font-size:32px;margin-bottom:16px;">🚧</div>
@@ -1368,7 +1427,7 @@ canvas{display:block;image-rendering:pixelated;}
   <div id="credits-screen" class="screen hidden" style="background:radial-gradient(ellipse at center,#080010 0%,#000000 100%);justify-content:center;align-items:center;">
     <div style="text-align:center;padding:20px;max-width:500px;">
       <div style="font-size:10px;color:#ffd700;text-shadow:0 0 20px #ffd700,3px 3px 0 #aa7700;margin-bottom:6px;letter-spacing:3px;animation:pulse 2s infinite;">STICK BRAWL</div>
-      <div style="font-size:6px;color:#555566;margin-bottom:36px;letter-spacing:2px;">Version 1.4 — Sunset Update</div>
+      <div style="font-size:6px;color:#555566;margin-bottom:36px;letter-spacing:2px;">Version 1.5 — Sunrise Update</div>
 
       <div style="font-size:6px;color:#888899;margin-bottom:6px;letter-spacing:2px;">CREATED BY</div>
       <div style="font-size:22px;color:#ffffff;text-shadow:0 0 30px rgba(255,255,255,0.4),3px 3px 0 #333355;margin-bottom:36px;letter-spacing:4px;">Angus</div>
@@ -1483,13 +1542,182 @@ function sfxHit(power){
 }
 function sfxBlock(){ playTone(340,0.09,'triangle',0.35,{freqEnd:520}); playNoise(0.05,0.18,{filterFreq:3200}); }
 function sfxJump(){ playTone(220,0.11,'sine',0.22,{freqEnd:420}); }
-function sfxSpecial(){ playTone(180,0.22,'sawtooth',0.24,{freqEnd:640}); }
-function sfxHyper(){ playTone(70,0.5,'sawtooth',0.42,{freqEnd:820}); playNoise(0.4,0.26,{filterFreq:3800}); }
-function sfxKO(){ playTone(480,0.42,'sine',0.34,{freqEnd:40}); }
-function sfxWin(){ [0,120,240].forEach((t,i)=>setTimeout(()=>playTone(440+i*220,0.24,'square',0.28),t)); }
-function sfxCoin(){ playTone(880,0.07,'square',0.18,{freqEnd:1400}); }
+function sfxSpecial(){
+  playTone(180,0.22,'sawtooth',0.24,{freqEnd:640});
+  playNoise(0.14,0.12,{filterFreq:2600});
+}
+function sfxHyper(){
+  // Charge rumble -> rising sweep -> sizzle -> sharp release crack
+  playTone(55,0.18,'sine',0.3,{freqEnd:95});
+  setTimeout(()=>playTone(90,0.45,'sawtooth',0.4,{freqEnd:900}),80);
+  setTimeout(()=>playNoise(0.4,0.28,{filterFreq:4200}),80);
+  setTimeout(()=>playTone(240,0.14,'square',0.32,{freqEnd:40}),420);
+}
+function sfxKO(){
+  playTone(480,0.42,'sine',0.34,{freqEnd:40});
+  playNoise(0.35,0.16,{filterFreq:900});
+}
+function sfxWin(){
+  [0,120,240].forEach((t,i)=>setTimeout(()=>playTone(440+i*220,0.24,'square',0.28),t));
+  setTimeout(()=>playNoise(0.3,0.14,{filterFreq:5000}),240);
+}
+function sfxCoin(){
+  playTone(880,0.06,'square',0.18,{freqEnd:1400});
+  setTimeout(()=>playTone(1320,0.09,'square',0.16,{freqEnd:1800}),55);
+}
 function sfxAchievement(){ [0,110,220].forEach((t,i)=>setTimeout(()=>playTone(523+i*130,0.17,'triangle',0.26),t)); }
 function sfxMenu(){ playTone(650,0.045,'square',0.13,{freqEnd:820}); }
+function sfxUnlock(){
+  [0,90,180].forEach((t,i)=>setTimeout(()=>playTone(400+i*160,0.16,'triangle',0.24,{freqEnd:600+i*160}),t));
+}
+function sfxDeny(){ playTone(160,0.16,'square',0.22,{freqEnd:80}); }
+function sfxPause(){ playTone(500,0.08,'sine',0.16,{freqEnd:300}); }
+function sfxEventStart(){
+  [0,140,280].forEach((t,i)=>setTimeout(()=>playTone(330+i*110,0.3,'triangle',0.3,{freqEnd:520+i*110}),t));
+  setTimeout(()=>playNoise(0.35,0.16,{filterFreq:3600}),140);
+}
+function sfxCodeSuccess(){
+  [0,90,180,270].forEach((t,i)=>setTimeout(()=>playTone(523*Math.pow(2,i/12),0.14,'triangle',0.28),t));
+}
+function sfxCodeError(){ playTone(140,0.3,'sawtooth',0.28,{freqEnd:60}); }
+function sfxSunrise(){
+  // Warm ascending major-chord swell for the 'sunrise' easter egg
+  [0,220,440].forEach((t,i)=>setTimeout(()=>playTone([220,277,330][i],0.9,'sine',0.28,{freqEnd:[440,554,660][i]}),t));
+  setTimeout(()=>playNoise(0.6,0.1,{filterFreq:5200}),300);
+}
+
+// -- WEEKLY EVENTS -- rotates automatically every 7 days, same event for everyone all week
+const WEEKLY_EVENTS = [
+  { id:'double_damage', name:'DOUBLE DAMAGE',  col:'#ff3333', desc:'All damage dealt is doubled. Fights end fast -- stay sharp!', dmgMult:2 },
+  { id:'featherweight', name:'FEATHERWEIGHT',  col:'#66ccff', desc:'Gravity is halved. Jumps are huge and knockback carries forever.', gravityMult:0.5 },
+  { id:'turbo',         name:'TURBO MODE',     col:'#ffdd00', desc:'Everyone moves 40% faster. Reflexes only!', speedMult:1.4 },
+  { id:'giant',         name:'GIANT WEEK',     col:'#aa66ff', desc:'Every fighter is drawn 50% larger.', scaleMult:1.5 },
+  { id:'mini',          name:'MINI WEEK',      col:'#66ffaa', desc:'Every fighter is drawn 35% smaller and moves a bit faster.', scaleMult:0.65, speedMult:1.15 },
+  { id:'gold_rush',     name:'GOLD RUSH',      col:'#ffd700', desc:'Coins earned from Regular Battles are tripled.', coinMult:3 },
+  { id:'glass_cannon',  name:'GLASS CANNON',   col:'#ff6600', desc:'Damage dealt is boosted 80% for everyone. High risk, high reward.', dmgMult:1.8 },
+  { id:'charged_up',    name:'CHARGED UP',     col:'#cc00ff', desc:'Both fighters start every match with a half-full Hyper Gauge.', hyperStartBonus:50 },
+];
+function getEventWeekIndex(){
+  const epoch = new Date(2024,0,1).getTime();
+  const weekMs = 7*24*60*60*1000;
+  const weeks = Math.floor((Date.now()-epoch)/weekMs);
+  return ((weeks % WEEKLY_EVENTS.length)+WEEKLY_EVENTS.length) % WEEKLY_EVENTS.length;
+}
+function getActiveEvent(){ return WEEKLY_EVENTS[getEventWeekIndex()]; }
+// Weekly events only apply during genuine Regular Battles -- never in Story, Horde,
+// Tournament, Spacecraft, or the Tutorial fight -- and can be switched off entirely.
+function isRegularBattleContext(){
+  return !!game && !game.tutorialFight && !game.hordeFight && !game.storyFight && !game.scCombat && !trn;
+}
+function eventsActive(){
+  return save.settings.weeklyEvents!=='off' && isRegularBattleContext();
+}
+function getEventDmgMult(){ return eventsActive() ? (getActiveEvent().dmgMult||1) : 1; }
+function getEventGravityMult(){ return eventsActive() ? (getActiveEvent().gravityMult||1) : 1; }
+function getEventSpeedMult(){ return eventsActive() ? (getActiveEvent().speedMult||1) : 1; }
+function getEventScaleMult(){ return eventsActive() ? (getActiveEvent().scaleMult||1) : 1; }
+function getEventCoinMult(){ return eventsActive() ? (getActiveEvent().coinMult||1) : 1; }
+function getEventHyperBonus(){ return eventsActive() ? (getActiveEvent().hyperStartBonus||0) : 0; }
+
+let _eventBannerAnnounced = false;
+function updateWeeklyEventBanner(){
+  const ev = getActiveEvent();
+  const nameEl = document.getElementById('weekly-event-name');
+  const bannerEl = document.getElementById('weekly-event-banner');
+  const isOff = save.settings.weeklyEvents==='off';
+  if(nameEl) nameEl.textContent = isOff ? ev.name+' (OFF)' : ev.name;
+  if(bannerEl){
+    const col = isOff ? '#555566' : ev.col;
+    bannerEl.style.borderColor = col; bannerEl.style.opacity = isOff ? '0.55' : '1';
+    nameEl.style.color = col; nameEl.style.textShadow = isOff ? 'none' : '0 0 8px '+col;
+  }
+  if(!_eventBannerAnnounced && !isOff){ _eventBannerAnnounced=true; sfxEventStart(); }
+}
+function showWeeklyEventInfo(){
+  const ev = getActiveEvent();
+  const nameEl = document.getElementById('event-info-name');
+  const descEl = document.getElementById('event-info-desc');
+  const isOff = save.settings.weeklyEvents==='off';
+  if(nameEl){ nameEl.textContent = ev.name; nameEl.style.color = ev.col; nameEl.style.textShadow = '0 0 14px '+ev.col; }
+  if(descEl) descEl.textContent = (isOff ? '[EVENTS ARE CURRENTLY OFF] ' : '') + ev.desc + ' Applies to Regular Battles only.';
+  sfxMenu();
+  showScreen('event-info-screen');
+}
+
+// -- BRAWL CODE (Mobile Edition link) --
+function showBrawlCodeScreen(){
+  const codeEl = document.getElementById('brawl-code-display');
+  if(codeEl) codeEl.textContent = save.brawlCode;
+  const inputEl = document.getElementById('brawl-code-input');
+  if(inputEl) inputEl.value = '';
+  const msgEl = document.getElementById('brawl-code-msg');
+  if(msgEl){ msgEl.textContent=''; msgEl.style.color='#888'; }
+  sfxMenu();
+  showScreen('brawl-code-screen');
+}
+
+function copyBrawlCode(){
+  const code = save.brawlCode;
+  const doFallback = ()=>{
+    const ta=document.createElement('textarea');
+    ta.value=code; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    ta.remove();
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).catch(doFallback);
+  } else { doFallback(); }
+  const msgEl = document.getElementById('brawl-code-msg');
+  if(msgEl){ msgEl.textContent='Code copied!'; msgEl.style.color='#33ff99'; }
+  sfxMenu();
+}
+
+function redeemBrawlCode(){
+  const inputEl = document.getElementById('brawl-code-input');
+  const msgEl = document.getElementById('brawl-code-msg');
+  if(!inputEl) return;
+  const raw = (inputEl.value||'').trim().toUpperCase();
+
+  if(!/^[A-Z2-9]{6}$/.test(raw)){
+    sfxCodeError();
+    if(msgEl){ msgEl.textContent='Enter a valid 6-character Brawl Code.'; msgEl.style.color='#ff5555'; }
+    return;
+  }
+  if(raw === save.brawlCode){
+    sfxCodeError();
+    if(msgEl){ msgEl.textContent="That's your own code! Enter one from Mobile Edition."; msgEl.style.color='#ff5555'; }
+    return;
+  }
+  if(!save.redeemedCodes) save.redeemedCodes=[];
+  if(save.redeemedCodes.includes(raw)){
+    sfxCodeError();
+    if(msgEl){ msgEl.textContent='That code has already been redeemed.'; msgEl.style.color='#ff5555'; }
+    return;
+  }
+
+  // Grant rewards: 600 coins + RELAY A, the Brawl Code exclusive fighter (only obtainable this way)
+  save.redeemedCodes.push(raw);
+  save.coins += 600;
+
+  const alreadyHasRelayA = (save.unlocked||[]).includes('relay_a');
+  if(!alreadyHasRelayA) save.unlocked.push('relay_a');
+
+  doSave();
+  updateCoinsDisplay();
+  checkAchievements();
+  updateCompletionDisplay();
+  sfxCodeSuccess();
+
+  if(msgEl){
+    msgEl.style.color='#ffd700';
+    msgEl.textContent = alreadyHasRelayA
+      ? `Code redeemed! +600 coins (you already have RELAY A).`
+      : `Code redeemed! +600 coins and RELAY A unlocked — Mobile Edition exclusive!`;
+  }
+  inputEl.value='';
+}
+
 
 // ── SAVE STATE ──
 const SAVE_KEY='stickbrawl_v2';
@@ -1501,6 +1729,16 @@ let save=loadSave();
 if(save.customs) save.customs=save.customs.filter(c=>c.id!=='preset_nova');
 // Safety: reset zero gravity (game-breaking setting) to normal on load
 if(save.settings.gravity==='zero') save.settings.gravity='normal';
+// Brawl Code -- random 6-char alphanumeric code, generated once per save, used to link with Mobile Edition
+if(!save.brawlCode){ save.brawlCode=generateBrawlCode(); doSave(); }
+if(!save.redeemedCodes) save.redeemedCodes=[];
+
+function generateBrawlCode(){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0/O/1/I/L -- avoids visual ambiguity
+  let code='';
+  for(let i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
 
 // ── CHARACTERS ──
 const CHARS=[
@@ -1542,6 +1780,14 @@ const OMEGA_CHAR = {
 // Inject into CHARS so everything (roster, char select, movesets) picks it up
 CHARS.push(OMEGA_CHAR);
 
+const RELAY_A_CHAR = {
+  id:'relay_a', name:'RELAY A', col:'#00e5ff', acc:'#ff2299',
+  spd:8, pwr:7, jmp:7, base:false, cost:0,
+  brawlCodeUnlock:true,
+  desc:'A signal given form. RELAY A exists to link what should never have been apart — only obtainable by redeeming a Brawl Code from Mobile Edition.'
+};
+CHARS.push(RELAY_A_CHAR);
+
 // ── ACHIEVEMENT DEFINITIONS ──
 const ACHIEVEMENTS = [
   { id:'first_blood',  name:'FIRST BLOOD',      desc:'Win your first fight',                     icon:'⚔',  check:s=>( (s.fights||0)>=1 ) },
@@ -1565,7 +1811,6 @@ const ACHIEVEMENTS = [
   { id:'big_spender',  name:'BIG SPENDER',       desc:'Spend 2000 coins total',                   icon:'💸',  check:s=>(s.totalSpent||0)>=2000 },
   { id:'creator_pro',  name:'MASTER CREATOR',    desc:'Create 5 custom fighters',                 icon:'🎨',  check:s=>(s.customs||[]).length>=5 },
   { id:'two_player',   name:'TWO PLAYER GLORY',  desc:'Win a local 2-Player match',                icon:'🤝',  check:s=>!!(s.pvpWin) },
-  { id:'omega_slayer', name:'OMEGA SLAYER',      desc:'Defeat OMEGA in battle',                    icon:'💥',  check:s=>!!(s.omegaDefeated) },
 ];
 
 const TOTAL_COMPLETABLES = ()=>{
@@ -1706,6 +1951,69 @@ function renderAchievementsList(){
 }
 
 // ── OMEGA CUTSCENE ──
+// -- SUNRISE EASTER EGG (dev console: type 'sunrise') --
+function showSunriseCutscene(){
+  const ov=document.createElement('div');
+  ov.id='_sunrise_cutscene';
+  ov.style.cssText='position:absolute;inset:0;z-index:5000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-family:"Press Start 2P",monospace;';
+  const cv=document.createElement('canvas'); cv.width=800; cv.height=500;
+  cv.style.cssText='position:absolute;inset:0;width:100%;height:100%;';
+  ov.appendChild(cv);
+  const txt=document.createElement('div');
+  txt.style.cssText='position:relative;z-index:1;text-align:center;pointer-events:none;';
+  txt.innerHTML='<div id="_sr_title" style="font-size:0px;color:#ffcc66;text-shadow:0 0 30px #ff9933;transition:font-size 1s;margin-bottom:10px;">THE SUN ALWAYS RISES.</div>'+
+    '<div id="_sr_sub" style="font-size:6px;color:#cc9966;opacity:0;transition:opacity 1.2s;">-Angus</div>'+
+    '<div style="font-size:5px;color:#553322;margin-top:30px;animation:pulse 1s infinite;">CLICK TO CONTINUE</div>';
+  ov.appendChild(txt);
+  document.getElementById('game-container').appendChild(ov);
+  const ctx3=cv.getContext('2d');
+  let t=0;
+  function draw(){
+    const riseP=Math.min(1,t/180);
+    // Sky gradient shifts from night to sunrise colours as the sun rises
+    const g=ctx3.createLinearGradient(0,0,0,500);
+    g.addColorStop(0, `rgb(${10+40*riseP},${8+30*riseP},${30+20*riseP})`);
+    g.addColorStop(0.55, `rgb(${40+180*riseP},${20+110*riseP},${50+60*riseP})`);
+    g.addColorStop(1, `rgb(${60+195*riseP},${30+140*riseP},${40+40*riseP})`);
+    ctx3.fillStyle=g; ctx3.fillRect(0,0,800,500);
+    // Stars fading out as the sun rises
+    ctx3.globalAlpha=Math.max(0,1-riseP*1.6);
+    for(let i=0;i<50;i++){
+      const sx=(i*137)%800, sy=(i*71)%280;
+      ctx3.fillStyle='#fff'; ctx3.fillRect(sx,sy,1.5,1.5);
+    }
+    ctx3.globalAlpha=1;
+    // Horizon
+    ctx3.fillStyle='#1a1008'; ctx3.fillRect(0,420,800,80);
+    // Sun disc rising over the horizon
+    const sunY=440-riseP*220;
+    const sunR=42+riseP*8;
+    ctx3.save();
+    ctx3.beginPath(); ctx3.rect(0,0,800,420); ctx3.clip();
+    // Rays
+    for(let i=0;i<12;i++){
+      const ang=(i/12)*Math.PI*2+t*0.003;
+      ctx3.globalAlpha=0.12+0.06*Math.abs(Math.sin(t*0.03+i));
+      ctx3.strokeStyle='#ffcc66'; ctx3.lineWidth=6;
+      ctx3.beginPath(); ctx3.moveTo(400,sunY); ctx3.lineTo(400+Math.cos(ang)*300,sunY+Math.sin(ang)*300); ctx3.stroke();
+    }
+    ctx3.globalAlpha=1;
+    const sg=ctx3.createRadialGradient(400,sunY,0,400,sunY,sunR);
+    sg.addColorStop(0,'#fff4cc'); sg.addColorStop(0.6,'#ffcc66'); sg.addColorStop(1,'#ff9933');
+    ctx3.fillStyle=sg;
+    ctx3.beginPath(); ctx3.arc(400,sunY,sunR,0,Math.PI*2); ctx3.fill();
+    ctx3.restore();
+    // Ground silhouette
+    ctx3.fillStyle='#0a0603'; ctx3.fillRect(0,455,800,45);
+    t++;
+    if(document.getElementById('_sunrise_cutscene')) requestAnimationFrame(draw);
+  }
+  draw();
+  setTimeout(()=>{ const el=document.getElementById('_sr_title'); if(el) el.style.fontSize='14px'; },500);
+  setTimeout(()=>{ const el=document.getElementById('_sr_sub'); if(el) el.style.opacity='1'; },1600);
+  ov.onclick=()=>{ ov.remove(); };
+}
+
 function showOmegaUnlockCutscene(){
   const ov=document.createElement('div');
   ov.id='_omega_cutscene';
@@ -1884,6 +2192,9 @@ const CHAR_MOVESETS = {
   omega:    { atk:'Omega strike — rainbow-charged hit scaling off opponent’s current damage%',
                sp: 'Prismatic burst — 5 homing energy orbs in a spread, each tracking the opponent',
                passive:'Mastery — hyper gauge fills 1.5× faster; all stats 9; attack scales with opponent % ' },
+  relay_a:  { atk:'Ping strike — a quick double-jab that leaves a brief signal afterimage',
+               sp: 'Data burst — fires a single homing pulse of light that locks onto the opponent',
+               passive:'Synced — a 25% chance on every landed hit to instantly refill bonus hyper gauge' },
 };
 
 const ANGUS_MOVE_DETAIL = [
@@ -1960,6 +2271,8 @@ const HYPER_DATA = {
                type:'custom_blitz', props:['Full-stage wave','Upward launch','Scales with PWR'] },
   omega:    { name:'OMEGA RECKONING', col:'#ff00ff', desc:'Combines every hyper into one — a full-stage prismatic explosion that homes in on the opponent from all angles, followed by a devastating implosion.',
                type:'omega_reckoning', props:['Full-stage coverage','Multi-phase: explosion + implosion','Unblockable','Deals bonus damage per % opponent is at'] },
+  relay_a:  { name:'FULL SYNC', col:'#00e5ff', desc:'RELAY A splits into three synced afterimages that strike from staggered angles in rapid succession, ending in a guaranteed finishing blow.',
+               type:'full_sync', props:['3 rapid synced strikes','Guaranteed connect','Cyan/magenta data burst finisher'] },
 };
 
 // Angus hyper per moveset
@@ -2031,6 +2344,11 @@ applyKnockback = function(attacker, target, basePwr, angle, kbScale){
     const tgtMult = target.char.id==='omega' ? 1.5 : 1;
     attacker.hyperGauge = Math.min(HYPER_MAX, (attacker.hyperGauge||0) + dmgDealt * HYPER_GAIN_DEAL * hyperRateMult * atkMult);
     target.hyperGauge = Math.min(HYPER_MAX, (target.hyperGauge||0) + dmgDealt * HYPER_GAIN_TAKE * hyperRateMult * tgtMult);
+    // RELAY A passive: Synced -- 25% chance per landed hit to instantly refill bonus hyper gauge
+    if(attacker.char.id==='relay_a' && Math.random()<0.25){
+      attacker.hyperGauge = Math.min(HYPER_MAX, (attacker.hyperGauge||0) + 15);
+      if(game) spawnParts(attacker.x+attacker.w/2, attacker.y+attacker.h*0.3, '#00e5ff', 6, 1.5);
+    }
   }
 };
 
@@ -2055,11 +2373,26 @@ function getHyperType(p){
 
 function execHyper(p, opp, type){
   sfxHyper();
-  // Screen flash
-  game.hyperFlash = {col: getHyperCol(p), timer: 30, p};
+  const hc = getHyperCol(p);
+  // Bigger, longer screen flash
+  game.hyperFlash = {col: hc, timer: 34, p};
 
-  // Spawn dramatic particles
-  for(let i=0;i<30;i++) spawnParts(p.x+p.w/2, p.y+p.h/2, getHyperCol(p), 1, 3);
+  if(save.settings.vfx!=='off'){
+    // Anticipation hit-stop so the hyper reads as a real impact moment
+    game.hitStop = Math.max(game.hitStop||0, 5);
+    // Expanding ring shockwaves from the caster (was missing before — now every hyper gets them)
+    if(!game.shockwaves) game.shockwaves=[];
+    for(let i=0;i<3;i++){
+      game.shockwaves.push({x:p.x+p.w/2,y:p.y+p.h/2,r:2+i*7,speed:7-i*1.3,life:24-i*4,maxLife:24-i*4,col:hc});
+    }
+    // Radial particle ring (uniform burst) layered under the old random sparkle burst
+    for(let i=0;i<16;i++){
+      const ang=(i/16)*Math.PI*2;
+      game.particles.push({x:p.x+p.w/2,y:p.y+p.h/2,vx:Math.cos(ang)*4.2,vy:Math.sin(ang)*4.2-1,life:28,max:28,initSz:2+Math.random()*1.5,bright:true,col:hc});
+    }
+  }
+  // Spawn dramatic particles (original random sparkle burst — kept for density)
+  for(let i=0;i<30;i++) spawnParts(p.x+p.w/2, p.y+p.h/2, hc, 1, 3);
 
   switch(type){
     case'multidash': case'angus_brawler':
@@ -2295,6 +2628,29 @@ function execHyper(p, opp, type){
       game.hyperShake = 60;
       game.hyperFlash = {col:'#ffffff', timer:60, p};
       for(let i=0;i<80;i++) spawnParts(Math.random()*W, Math.random()*H, `hsl(${Math.random()*360},100%,60%)`, 1, 5);
+      break;
+    }
+    case'full_sync':{
+      // Three synced afterimage strikes in rapid succession, each guaranteed to connect
+      game.hyperShake = 10;
+      const hitAngles = [30, 60, 90];
+      hitAngles.forEach((ang, i)=>{
+        setTimeout(()=>{
+          if(!game||opp.lives<=0) return;
+          applyKnockback(p, opp, 9+i*2, ang, 0.22);
+          spawnParts(opp.x+opp.w/2, opp.y+opp.h/2, i%2===0?'#00e5ff':'#ff2299', 14, 2.5);
+          game.hyperShake = Math.max(game.hyperShake||0, 8);
+        }, i*160);
+      });
+      // Finisher: guaranteed knockback strike
+      setTimeout(()=>{
+        if(!game||opp.lives<=0) return;
+        applyKnockback(p, opp, 16, 70, 0.4);
+        p.hyperGauge=0;
+        game.hyperShake = 22;
+        game.hyperFlash={col:'#00e5ff', timer:30, p};
+        for(let i=0;i<20;i++) spawnParts(opp.x+opp.w/2,opp.y+opp.h/2,i%2===0?'#00e5ff':'#ff2299',1,3);
+      }, 520);
       break;
     }
     case'omega_reckoning':{
@@ -2584,6 +2940,7 @@ function clearJP(){for(const k in JP)delete JP[k];}
 // ── SCREEN MANAGER ──
 function showScreen(id){
   if(id==='settings-screen'){ setTimeout(applySettingsLocks, 0); }
+  if(id==='title-screen'){ setTimeout(updateWeeklyEventBanner, 0); }
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   // Also hide intro overlays if navigating back to any screen
   const _io=document.getElementById('intro-screen'); if(_io) _io.style.display='none';
@@ -2966,9 +3323,10 @@ function tryUnlock(ch){
   if(ch.achievementUnlock){alert(ch.name+' can only be unlocked by completing ALL achievements.');return;}
   if(ch.trophyUnlock){alert(ch.name+' can only be unlocked by winning a 16-player Tournament.');return;}
   if(ch.scUnlock){alert(ch.name+' can only be unlocked by completing Spacecraft Mode!');return;}
+  if(ch.brawlCodeUnlock){alert(ch.name+' can only be unlocked by redeeming a Brawl Code from Mobile Edition!');return;}
   if(ch.achievementUnlock && !(save.unlocked||[]).includes(ch.id)){alert(ch.name+' can only be unlocked by completing ALL achievements!');return;}
-  if(save.coins>=ch.cost){if(confirm(`Unlock ${ch.name} for ${ch.cost} coins?\n(You have ${save.coins})`)){save.coins-=ch.cost;save.totalSpent=(save.totalSpent||0)+ch.cost;save.unlocked.push(ch.id);doSave();renderCharGrids();updateCoinsDisplay();checkAchievements();updateCompletionDisplay();}}
-  else{alert(`Need ${ch.cost} coins! You have ${save.coins}.`);}
+  if(save.coins>=ch.cost){if(confirm(`Unlock ${ch.name} for ${ch.cost} coins?\n(You have ${save.coins})`)){save.coins-=ch.cost;save.totalSpent=(save.totalSpent||0)+ch.cost;save.unlocked.push(ch.id);doSave();renderCharGrids();updateCoinsDisplay();checkAchievements();updateCompletionDisplay();sfxUnlock();}}
+  else{sfxDeny();alert(`Need ${ch.cost} coins! You have ${save.coins}.`);}
 }
 
 // ── STAGE SELECT ──
@@ -3049,6 +3407,8 @@ const SETTING_BTNS = {
   stageHazards:   ['on','off'],
   cpuReact:       ['reactive','balanced','predictive','random'],
   sfx:            ['off','low','normal','high'],
+  vfx:            ['off','on'],
+  weeklyEvents:   ['off','on'],
 };
 
 // ID prefix map for keys that don't follow the key-value pattern directly
@@ -3140,6 +3500,8 @@ function settingsInitAll(){
     ledgeVuln:'normal', hitDecay:'normal', djHeight:'normal',
     counterWindow:'normal', stageHazards:'on', cpuReact:'balanced',
     sfx:'normal',
+    vfx:'on',
+    weeklyEvents:'on',
   };
   Object.keys(defaults).forEach(k=>{
     const v = (save.settings[k] !== undefined) ? save.settings[k] : defaults[k];
@@ -3170,6 +3532,7 @@ function makePlayer(ch,startX,isP2){
 
 // ── PARTICLES ──
 function spawnParts(x,y,col,n,power){
+  if(save.settings.vfx==='off')return;
   power=power||1;
   const _pm={'off':0,'low':0.3,'normal':1,'high':2,'ultra':4};
   const _pmk=save.settings.particles||'normal';
@@ -3192,6 +3555,7 @@ function applyKnockback(attacker, target, basePwr, angle, kbScale){
   if(attacker._unfair) dmg *= 3;
   if(attacker._cpuDmgMult && attacker._cpuDmgMult>1) dmg *= attacker._cpuDmgMult;
   dmg *= (save.settings.dmgMult || 1);
+  dmg *= getEventDmgMult();
   target.dmg += dmg;
   target.peakDmg = Math.max(target.peakDmg||0, target.dmg);
 
@@ -3238,7 +3602,7 @@ function applyKnockback(attacker, target, basePwr, angle, kbScale){
 
   const partCol = isGod ? '#ffdd00' : attacker.char.acc;
   sfxHit(Math.min(1.6, kbMag/12));
-  if(save.settings.hitFlash!=='off'){
+  if(save.settings.hitFlash!=='off' && save.settings.vfx!=='off'){
     game.flash = isGod ? 20 : Math.min(16, Math.floor(3 + kbMag * 0.5));
     game.flashPos = {x: target.x+target.w/2, y: target.y+target.h*0.4, col: partCol};
     // Brief hit-stop freeze-frame on meaningful hits — classic fighting-game punch
@@ -3257,7 +3621,7 @@ function applyKnockback(attacker, target, basePwr, angle, kbScale){
     target._comboCount=(target._comboCount||0)+1;
     target._comboLastHit=game.timer;
     target._comboFrom=attacker;
-    if(target._comboCount>=3){
+    if(target._comboCount>=3 && save.settings.vfx!=='off'){
       if(!game.comboPopups) game.comboPopups=[];
       game.comboPopups.push({x:target.x+target.w/2,y:target.y-30,n:target._comboCount,life:32,col:attacker.char.acc});
     }
@@ -3296,6 +3660,22 @@ function doAttack(attacker,target){
     }
   }
 
+  // RELAY A — Ping Strike: quick double-jab with a signal afterimage
+  if(attacker.char.id==='relay_a'){
+    const range=88; const atkAngle=38; const kbScale=0.24; const staggerTime=14; const coolTime=7;
+    attacker.atkTimer=staggerTime; attacker.atkCool=coolTime; attacker.action='attack';
+    const dxR=Math.abs((target.x+target.w/2)-(attacker.x+attacker.w/2));
+    const dyR=Math.abs((target.y+target.h/2)-(attacker.y+attacker.h/2));
+    if(dxR<range && dyR<70){
+      if(target.blkTimer>0){sfxBlock();spawnParts(target.x+target.w/2,target.y,'#00e5ff',5);attacker.vx-=attacker.facing*2;return;}
+      if(target.invTimer>0) return;
+      applyKnockback(attacker, target, 6.5, atkAngle, kbScale);
+      // Signal afterimage trail
+      spawnParts(attacker.x+attacker.w/2-attacker.facing*10, attacker.y+attacker.h*0.4, '#00e5ff', 5, 1.2);
+      spawnParts(target.x+target.w/2, target.y+target.h*0.4, '#ff2299', 4, 1.4);
+    }
+    return;
+  }
   // OMEGA — Omega strike: damage scales with opponent's current %
   if(attacker.char.id==='omega'){
     const range=95; const atkAngle=45; const kbScale=0.28; const staggerTime=18; const coolTime=9;
@@ -3578,6 +3958,21 @@ function doSpecial(attacker,target){
     return;
   }
 
+  // RELAY A — Data Burst: single homing pulse of light
+  if(attacker.char.id==='relay_a'){
+    attacker.atkTimer=24; attacker.spCool=48; attacker.action='special';
+    const speed=8+attacker.char.pwr*0.3;
+    game.projs.push({
+      x:attacker.x+attacker.w/2+attacker.facing*12,
+      y:attacker.y+attacker.h*0.35,
+      vx:attacker.facing*speed, vy:0,
+      col:'#00e5ff', owner:attacker, life:130, r:7,
+      godProj:false, angusDmg:7+attacker.char.pwr*0.4, kbScale:0.3,
+      homing:true, homingStr:0.24
+    });
+    spawnParts(attacker.x+attacker.w/2, attacker.y+attacker.h*0.4, '#ff2299', 8, 1.8);
+    return;
+  }
   // OMEGA — Prismatic burst: 5 homing energy orbs
   if(attacker.char.id==='omega'){
     attacker.atkTimer=28; attacker.spCool=42; attacker.action='special';
@@ -3664,7 +4059,7 @@ function updateCPU(p,opp){
   // Unfair: 3x damage. Chalana uses _cpuDmgMult (2.5x) instead — separate stack
   p._unfair = (diffKey==='unfair');
   const hasProj=['archer','mage','wizard','robot','overlord','phantom','specter','alien'].includes(p.char.id);
-  const spd=(2+p.char.spd*0.4)*diff.moveScale;
+  const spd=(2+p.char.spd*0.4)*diff.moveScale*getEventSpeedMult();
 
   // Prediction: harder CPUs aim at where opponent will be
   const predX = opp.x + opp.vx * diff.predict * 8;
@@ -3878,6 +4273,16 @@ function startFight(){
   const p2=makePlayer(p2char,560,true);
   if(save.settings.mode==='cpu')p2.cpu=true;
   game={p1,p2,plats,stage:selStage,timer:0,projs:[],particles:[],flash:0,bgOff:0,shockwaves:[],dmgFloats:[]};
+  // Weekly event effects (Regular Battles only -- game is now assigned so context checks are accurate)
+  {
+    const bonus=getEventHyperBonus();
+    if(bonus){ p1.hyperGauge=Math.min(100,p1.hyperGauge+bonus); p2.hyperGauge=Math.min(100,p2.hyperGauge+bonus); }
+    // Scale actual hitboxes to match GIANT/MINI event visuals -- was cosmetic-only before, now collision matches what you see
+    const scaleMult=getEventScaleMult();
+    if(scaleMult!==1){
+      [p1,p2].forEach(p=>{ p.w*=scaleMult; p.h*=scaleMult; });
+    }
+  }
   if(animId)cancelAnimationFrame(animId);
   gameLoop();
 }
@@ -3895,17 +4300,27 @@ const ERR_CODES = {
   'Cannot access'     : 'SB-1004', // TDZ / before-init
   'Maximum call'      : 'SB-1005', // infinite recursion
   'out of memory'     : 'SB-1006', // memory exhausted
+  'spawnParts'        : 'SB-1007', // particle spawn failure
+  'updateParts'       : 'SB-1008', // particle update loop failure
+  'hitStop'           : 'SB-1009', // hit-stop / freeze-frame timing failure
   // Render
   'getContext'        : 'SB-2001', // canvas context lost
   'drawImage'         : 'SB-2002', // offscreen canvas error
   'createLinearGrad'  : 'SB-2003', // gradient error
   'strokeRect'        : 'SB-2004', // canvas state corrupt
   'IndexSizeError'    : 'SB-2005', // invalid canvas dims
+  'shockwaves'        : 'SB-2006', // shockwave ring render failure
+  'comboPopups'       : 'SB-2007', // combo popup render failure
+  'renderTutorialFightHUD' : 'SB-2008', // tutorial fight HUD render failure
+  '_sunrise_cutscene' : 'SB-2009', // sunrise easter-egg render failure
   // Input / gameplay
   'applyKnockback'    : 'SB-3001', // knockback system
   'updateCPU'         : 'SB-3002', // CPU AI
   'checkDeaths'       : 'SB-3003', // death detection
   'execHyper'         : 'SB-3004', // hyper system
+  'doAttack'          : 'SB-3005', // attack system
+  'doSpecial'         : 'SB-3006', // special move system
+  'tutFightTick'      : 'SB-3007', // tutorial fight phase logic failure
   // Story / tournament
   'storyState'        : 'SB-4001', // story mode
   'hordeState'        : 'SB-4002', // horde mode
@@ -3913,10 +4328,20 @@ const ERR_CODES = {
   'scFlight'           : 'SB-4004', // starship state error
   'scState'            : 'SB-4004', // starship state error
   'spacecraft'         : 'SB-4004', // starship state error
+  'startTutorialFight' : 'SB-4005', // tutorial fight startup failure
   // Audio / misc
   'AudioContext'      : 'SB-5001', // audio
   'localStorage'      : 'SB-5002', // save data
   'SyntaxError'       : 'SB-5003', // JSON/parse
+  'playTone'          : 'SB-5004', // SFX tone synth failure
+  'playNoise'         : 'SB-5005', // SFX noise synth failure
+  // Meta / progression
+  'checkAchievements'      : 'SB-6001', // achievement check failure
+  'applySettingsLocks'     : 'SB-6002', // settings-lock system failure
+  'getActiveEvent'         : 'SB-6003', // weekly events system failure
+  'redeemBrawlCode'        : 'SB-6004', // brawl code redemption failure
+  'generateBrawlCode'      : 'SB-6005', // brawl code generation failure
+  'updateCompletionDisplay': 'SB-6006', // completion % calculation failure
   // Test
   'Test error triggered' : 'SB-2026', // dev console test
 };
@@ -4144,7 +4569,7 @@ function updatePlayer(p,opp,plats,isP1){
 
   const _gv={'zero':0,'low':0.28,'normal':0.55,'high':0.82,'moon':1.15};
   const _gvk=save.settings.gravity||'normal';
-  p.vy+=(_gvk in _gv)?_gv[_gvk]:0.55;
+  p.vy+=((_gvk in _gv)?_gv[_gvk]:0.55)*getEventGravityMult();
   p.x+=p.vx;p.y+=p.vy;
   // Tumble: reduced air friction at high damage for dramatic launches
   const _af={'none':0.92,'low':0.82,'normal':0.70,'high':0.58};
@@ -4208,7 +4633,7 @@ function handleInput(p,opp,isP1){
   const BLK=isP1?'Period':'KeyG';
   const SP=isP1?'Comma':'KeyH';
 
-  const spd=2+p.char.spd*0.4;
+  const spd=(2+p.char.spd*0.4)*getEventSpeedMult();
   if(KEYS[L])p.vx-=spd*0.28;
   if(KEYS[R])p.vx+=spd*0.28;
 
@@ -4309,7 +4734,7 @@ function checkDeaths(){
       sfxKO();
       {const _iv={'off':0,'short':45,'normal':90,'long':150};p.invTimer=_iv[save.settings.invFrames||'normal']||90;}
       spawnParts(p.x+p.w/2,300,p.char.col,20,2);
-      if(save.settings.hitFlash!=='off'){
+      if(save.settings.hitFlash!=='off' && save.settings.vfx!=='off'){
         game.flash = Math.max(game.flash||0, 24);
         game.flashPos = {x:400, y:250, col:'#ff3333'};
         game.hyperShake = Math.max(game.hyperShake||0, 16);
@@ -4347,7 +4772,7 @@ function endGame(winner){
   }
   cancelAnimationFrame(animId);animId=null;
   sfxWin(); setTimeout(sfxCoin, 300);
-  const earned=25+Math.floor(Math.random()*40);
+  const earned=Math.round((25+Math.floor(Math.random()*40))*getEventCoinMult());
   save.coins+=earned;save.fights=(save.fights||0)+1;
   save.wins[winner.char.id]=(save.wins[winner.char.id]||0)+1;
   // Track high-roller achievement: win at >=200% damage
@@ -4360,8 +4785,6 @@ function endGame(winner){
     if((winner.peakDmg||0)>=200) save.comebackWin=true;
     // Two-player local win
     if(save.settings.mode==='pvp') save.pvpWin=true;
-    // Defeated OMEGA in battle
-    if(_loser && _loser.char && _loser.char.id==='omega') save.omegaDefeated=true;
   }
   doSave();game=null;
   document.getElementById('result-text').textContent=winner.char.name+' WINS!';
@@ -4414,7 +4837,7 @@ function quickToggleSfx(){
   sfxMenu();
 }
 
-function togglePause(){if(save.settings.pauseAllowed==='off')return;paused=!paused;if(paused){document.getElementById('pause-screen').classList.remove('hidden');const _psb=document.getElementById('pause-sfx-toggle');if(_psb)_psb.textContent='SOUND: '+(save.settings.sfx||'normal').toUpperCase();}else{if(animId)cancelAnimationFrame(animId);animId=null;document.getElementById('pause-screen').classList.add('hidden');gameLoop();}}
+function togglePause(){if(save.settings.pauseAllowed==='off')return;paused=!paused;sfxPause();if(paused){document.getElementById('pause-screen').classList.remove('hidden');const _psb=document.getElementById('pause-sfx-toggle');if(_psb)_psb.textContent='SOUND: '+(save.settings.sfx||'normal').toUpperCase();}else{if(animId)cancelAnimationFrame(animId);animId=null;document.getElementById('pause-screen').classList.add('hidden');gameLoop();}}
 function resumeGame(){if(animId)cancelAnimationFrame(animId);animId=null;paused=false;document.getElementById('pause-screen').classList.add('hidden');gameLoop();}
 function quitToMenu(){cancelAnimationFrame(animId);animId=null;game=null;paused=false;trn=null;showScreen('title-screen');}
 function rematch(){startFight();}
@@ -4494,7 +4917,7 @@ function render(){
   ctx.globalAlpha=1;
 
   // ── PLAYERS ──
-  const charSc=({'small':0.9,'normal':1.2,'large':1.6,'huge':2.2})[save.settings.charScale||'normal']||1.2;
+  const charSc=(({'small':0.9,'normal':1.2,'large':1.6,'huge':2.2})[save.settings.charScale||'normal']||1.2)*getEventScaleMult();
   [p1,p2].forEach(p=>{
     if(p.invTimer>0&&p.invTimer%6>=3) return;
     drawStick(p.x+p.w/2, p.y+p.h, p.char, charSc, p.facing, p.frame, p.action);
@@ -4569,7 +4992,8 @@ function renderBG(stage){
   const t = game.bgOff;
   // Only redraw the offscreen canvas when something changes
   if(_bgCacheStage !== stage.id || Math.abs(_bgCacheBgOff - t) > 0.5){
-    if(!_bgCache || _bgCache.width!==W || _bgCache.height!==H){ _bgCache = document.createElement('canvas'); _bgCache.width=W; _bgCache.height=H; }
+    if(!_bgCache || _bgCache.width!==W || _bgCache.height!==H){ _bgCache = document.createElement('c
+anvas'); _bgCache.width=W; _bgCache.height=H; }
     const bc = _bgCache.getContext('2d');
     bc.clearRect(0,0,W,H);
     _drawBGToCtx(bc, stage, t);
@@ -5180,8 +5604,7 @@ function drawBar(bx,by,bw,bh,p,col,flip){
     ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.strokeRect(bx,gaugeY,bw,gaugeH);
     ctx.fillStyle=gCol;ctx.globalAlpha=0.7+0.3*Math.abs(Math.sin(now*0.006));
     ctx.font='5px "Press Start 2P"';ctx.textAlign='center';
-    ctx.fillText('HYPER READY! '+(flip?'[V]':'[EN
-TER]'),bx+bw/2,gaugeY+gaugeH+8);
+    ctx.fillText('HYPER READY! '+(flip?'[V]':'[ENTER]'),bx+bw/2,gaugeY+gaugeH+8);
     ctx.globalAlpha=1;
   }
 }
@@ -5666,6 +6089,30 @@ function drawMvChar(c, cx, by, char, action, frame, scale){
         c.globalAlpha=1;
       }catch(_e){ c.globalAlpha=1; }
       break;
+    case'relay_a':
+      try{
+        const rlAt=Date.now()*0.004;
+        // Signal-wave rings pulsing outward from chest
+        for(let _i=0;_i<3;_i++){
+          const rp=(rlAt+_i*0.33)%1;
+          c.globalAlpha=Math.max(0,0.4*(1-rp));
+          c.strokeStyle=_i%2===0?'#00e5ff':'#ff2299';
+          c.lineWidth=1.5;
+          c.beginPath(); c.arc(0,-28,4+rp*14,0,Math.PI*2); c.stroke();
+        }
+        c.globalAlpha=1;
+        // Circuit-line visor
+        c.fillStyle='#00e5ff';
+        c.fillRect(-4,-43,9,2);
+        c.globalAlpha=0.8+0.2*Math.abs(Math.sin(rlAt*3));
+        px(-3,-43,2,2,'#ff2299'); px(1,-43,2,2,'#00e5ff');
+        c.globalAlpha=1;
+        // Data-stream accent down the arm
+        c.globalAlpha=0.6;
+        px(-1,-35,2,12,'#ff2299');
+        c.globalAlpha=1;
+      }catch(_e){ c.globalAlpha=1; }
+      break;
     }  // close switch
   }  // close if/else block
   c.restore();
@@ -6058,7 +6505,7 @@ function renderRoster(){
       const nm=document.createElement('div');nm.style.cssText=`font-size:6px;color:${unl?'var(--gold)':'var(--gray)'};margin:4px 0 2px;`;nm.textContent=unl?ch.name:'???';card.appendChild(nm);
       if(unl){const w=document.createElement('div');w.style.cssText='font-size:5px;color:var(--gray);';w.textContent='WINS: '+(save.wins[ch.id]||0);card.appendChild(w);}
       else if(ch.hordeUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#cc0000;margin-top:4px;';lbl.textContent='⚔ HORDE (100 kills)';card.appendChild(lbl);}
-      else if(ch.achievementUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#cc00ff;margin-top:4px;';lbl.textContent='🏅 ALL ACHIEVEMENTS';card.appendChild(lbl);}else if(ch.trophyUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#ffd700;margin-top:4px;';lbl.textContent='🏆 WIN 16P TOURNAMENT';card.appendChild(lbl);}else if(ch.storyUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#cc00ff;margin-top:4px;';lbl.textContent='📖 STORY MODE';card.appendChild(lbl);}else if(ch.scUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#00ffcc;margin-top:4px;';lbl.textContent='🚀 SPACECRAFT';card.appendChild(lbl);}else{const btn=document.createElement('button');btn.className='menu-btn sm';btn.style.margin='4px auto 0';btn.style.display='block';btn.textContent='🔒 '+ch.cost+'c';btn.onclick=()=>{tryUnlock(ch);renderRoster();};card.appendChild(btn);}
+      else if(ch.achievementUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#cc00ff;margin-top:4px;';lbl.textContent='🏅 ALL ACHIEVEMENTS';card.appendChild(lbl);}else if(ch.trophyUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#ffd700;margin-top:4px;';lbl.textContent='🏆 WIN 16P TOURNAMENT';card.appendChild(lbl);}else if(ch.storyUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#cc00ff;margin-top:4px;';lbl.textContent='📖 STORY MODE';card.appendChild(lbl);}else if(ch.scUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#00ffcc;margin-top:4px;';lbl.textContent='🚀 SPACECRAFT';card.appendChild(lbl);}else if(ch.brawlCodeUnlock){const lbl=document.createElement('div');lbl.style.cssText='font-size:5px;color:#ff8800;margin-top:4px;';lbl.textContent='📱 BRAWL CODE';card.appendChild(lbl);}else{const btn=document.createElement('button');btn.className='menu-btn sm';btn.style.margin='4px auto 0';btn.style.display='block';btn.textContent='🔒 '+ch.cost+'c';btn.onclick=()=>{tryUnlock(ch);renderRoster();};card.appendChild(btn);}
       grid.appendChild(card);
     });
     rc.appendChild(grid);
@@ -6144,7 +6591,7 @@ function openDevConsole(){
   document.head.appendChild(style);
 
   devLog('DEV CONSOLE INITIALIZED');
-  devLog('Game version: Version 1.4 — Sunset Update');
+  devLog('Game version: Version 1.5 — Sunrise Update');
   devLog(`Save: ${save.coins} coins | ${save.unlocked.length} unlocked | ${save.fights} fights`);
 }
 
@@ -6865,7 +7312,7 @@ function devCmd(cmd){
       devLog('🎵 <span style="color:#00ffcc;">BATTLE SOUNDTRACK — curated picks:</span><br><span style="color:#ff4444;">Wolves</span> <span style="color:#888;">— Rise Against (2017)</span><br><span style="color:#3399ff;">The Blue Album</span> <span style="color:#888;">— Weezer (1994)</span><br><span style="color:#ff6644;">Nowhere Generation</span> <span style="color:#888;">— Rise Against (2021)</span><br><span style="color:#cc44ff;">Black Tar</span> <span style="color:#888;">— Xenoblade X OST (2015)</span><br><span style="color:#ff44aa;">Datte Atashino Hero</span> <span style="color:#888;">— LiSA (2018)</span><br><span style="color:#ffcc00;">Take On Me</span> <span style="color:#888;">— A-ha (1985)</span><br><span style="color:#ff8800;">Heaven x Hell</span> <span style="color:#888;">— Sum 41 (2024)</span><br><span style="color:#cc2222;">Fever (Album)</span> <span style="color:#888;">— Bullet for My Valentine (2010)</span><br><span style="color:#556;">...and more to come! ; )</span>');
       break;
     case'help':
-      devLog('Commands: coins [n], unlockall, lockall, resetcoins, <span style="color:#00ff41;">unlockachievements</span>, <span style="color:#00ff41;">unlockeverything</span>, god1, god2, nuke1, nuke2, maxdmg1, maxdmg2, zerodmg, addlife1, addlife2, dmg1 [n], dmg2 [n], lives1 [n], lives2 [n], slowmo, fastmo, normalmo, particles, resetwins, savedump, clearsave, char1 [id], char2 [id], stage [id], listchars, liststages, init, hyper/hyper1/hyper2, storyskip, hordeskip, trophyskip, spaceskip, music, <span style="color:#00ff41;">lines</span>, <span style="color:#00ff41;">errors</span>');
+      devLog('Commands: coins [n], unlockall, lockall, resetcoins, <span style="color:#00ff41;">unlockachievements</span>, <span style="color:#00ff41;">unlockeverything</span>, god1, god2, nuke1, nuke2, maxdmg1, maxdmg2, zerodmg, addlife1, addlife2, dmg1 [n], dmg2 [n], lives1 [n], lives2 [n], slowmo, fastmo, normalmo, particles, resetwins, savedump, clearsave, char1 [id], char2 [id], stage [id], listchars, liststages, init, hyper/hyper1/hyper2, storyskip, hordeskip, trophyskip, spaceskip, music, <span style="color:#00ff41;">lines</span>, <span style="color:#00ff41;">errors</span>, <span style="color:#ffcc66;">sunrise</span>');
       devLog('🤫 psst... try: summon 1  or  summon 2');break;
     case'test':
       devLog('Triggering test error SB-2026...');
@@ -6912,6 +7359,12 @@ function devCmd(cmd){
       devLog('Everything unlocked — 100% completion.');
       break;
     }
+    case'sunrise':{
+      closeDevConsole();
+      sfxSunrise();
+      showSunriseCutscene();
+      break;
+    }
     case'lines':{
       const _lc=document.documentElement.outerHTML.split('\n').length;
       devLog('Source lines: <span style="color:#00ff41;">'+_lc+'</span> (live DOM count — includes runtime modifications)');
@@ -6923,7 +7376,7 @@ function devCmd(cmd){
       if(_el){
         const _d=document.createElement('div');
         _d.style.cssText='font-size:5.5px;line-height:2;color:#aaa;margin-top:4px;';
-        _d.innerHTML='<span style=\\"color:#00ff41;font-size:6px;line-height:2.2;\\"><span style=\\"color:#ffd700;\\">── RUNTIME ERRORS ────────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-1001</span> <span style=\\"color:#888;\\">NULL/UNDEFINED READ — Cannot read property of null or undefined. Usually a missing game state reference.</span><br><span style=\\"color:#ff6666;\\">SB-1002</span> <span style=\\"color:#888;\\">MISSING FUNCTION — A method was called on an object that doesn\'t have it. Likely a removed or renamed function.</span><br><span style=\\"color:#ff6666;\\">SB-1003</span> <span style=\\"color:#888;\\">UNDEFINED VARIABLE — A variable was referenced before declaration. Check script load order.</span><br><span style=\\"color:#ff6666;\\">SB-1004</span> <span style=\\"color:#888;\\">TEMPORAL DEAD ZONE — Variable accessed before initialisation (const/let). Execution order issue.</span><br><span style=\\"color:#ff6666;\\">SB-1005</span> <span style=\\"color:#888;\\">INFINITE RECURSION — Maximum call stack exceeded. A function is calling itself without a base case.</span><br><span style=\\"color:#ff6666;\\">SB-1006</span> <span style=\\"color:#888;\\">OUT OF MEMORY — JavaScript heap exhausted. Too many particles, projectiles, or uncleared objects.</span><br><span style=\\"color:#ff8844;\\">SB-1010</span> <span style=\\"color:#888;\\">GAME LOOP CRASH — Error thrown inside updatePlayer, handleInput, or updateCPU. Check player state.</span><br><span style=\\"color:#ffd700;\\">── RENDER ERRORS ─────────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-2001</span> <span style=\\"color:#888;\\">CANVAS CONTEXT LOST — getContext(\'2d\') returned null. Canvas element may be detached from the DOM.</span><br><span style=\\"color:#ff6666;\\">SB-2002</span> <span style=\\"color:#888;\\">DRAW IMAGE FAILED — drawImage() call failed. Source image may be null, cross-origin, or wrong dimensions.</span><br><span style=\\"color:#ff6666;\\">SB-2003</span> <span style=\\"color:#888;\\">GRADIENT ERROR — createLinearGradient() failed. Canvas may be in an invalid state.</span><br><span style=\\"color:#ff6666;\\">SB-2004</span> <span style=\\"color:#888;\\">CANVAS STATE CORRUPT — strokeRect() failed. Canvas transform stack is mismatched (missing save/restore).</span><br><span style=\\"color:#ff6666;\\">SB-2005</span> <span style=\\"color:#888;\\">INVALID CANVAS DIMS — IndexSizeError: canvas width or height is zero or negative.</span><br><span style=\\"color:#ff8844;\\">SB-2010</span> <span style=\\"color:#888;\\">RENDER LOOP CRASH — Error inside render, renderBG, renderHUD, or drawStick. Check character draw data.</span><br><span style=\\"color:#33ff66;\\">SB-2026</span> <span style=\\"color:#888;\\">DEV TEST — Manually triggered via the dev console \'test\' command. Not a real error.</span><br><span style=\\"color:#ffd700;\\">── GAMEPLAY ERRORS ───────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-3001</span> <span style=\\"color:#888;\\">KNOCKBACK SYSTEM — applyKnockback() threw. Attacker or target object may be null or missing properties.</span><br><span style=\\"color:#ff6666;\\">SB-3002</span> <span style=\\"color:#888;\\">CPU AI CRASH — updateCPU() threw. Difficulty profile or AI state may be corrupted.</span><br><span style=\\"color:#ff6666;\\">SB-3003</span> <span style=\\"color:#888;\\">DEATH DETECTION — checkDeaths() threw. Blast zone calculation failed or player state is invalid.</span><br><span style=\\"color:#ff6666;\\">SB-3004</span> <span style=\\"color:#888;\\">HYPER SYSTEM — execHyper/doHyper threw. Hyper type missing from switch or player reference is null.</span><br><span style=\\"color:#ff8844;\\">SB-3010</span> <span style=\\"color:#888;\\">COMBAT CRASH — Error in applyKnockback, doAttack, or doSpecial. Check active character data.</span><br><span style=\\"color:#ffd700;\\">── MODE ERRORS ───────────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-4001</span> <span style=\\"color:#888;\\">STORY MODE — Error in storyState handler. A story node may reference a missing stage, character, or transition.</span><br><span style=\\"color:#ff6666;\\">SB-4002</span> <span style=\\"color:#888;\\">HORDE MODE — Error in hordeState handler. Wave spawner or carry-damage calculation failed.</span><br><span style=\\"color:#ff6666;\\">SB-4003</span> <span style=\\"color:#888;\\">TOURNAMENT — Tournament bracket logic threw. Seeding, match generation, or bracket rendering failed.</span><br><span style=\\"color:#ff6666;\\">SB-4004</span> <span style=\\"color:#888;\\">SPACECRAFT — scFlight/scState error. Spacecraft physics, collision, or combat loop failed.</span><br><span style=\\"color:#ffd700;\\">── SYSTEM ERRORS ─────────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-5001</span> <span style=\\"color:#888;\\">AUDIO — AudioContext creation or resume failed. Browser may be blocking audio autoplay.</span><br><span style=\\"color:#ff6666;\\">SB-5002</span> <span style=\\"color:#888;\\">SAVE DATA — localStorage read/write failed. Storage may be full, blocked, or in private browsing mode.</span><br><span style=\\"color:#ff6666;\\">SB-5003</span> <span style=\\"color:#888;\\">PARSE ERROR — SyntaxError in JSON.parse(). Save data may be corrupted — use \'clearsave\' to reset.</span><br><span style=\\"color:#ff8844;\\">SB-9999</span> <span style=\\"color:#888;\\">UNKNOWN ERROR — No matching error code found. Check the error log for the full stack trace.</span></span>';
+        _d.innerHTML='<span style=\\"color:#00ff41;font-size:6px;line-height:2.2;\\"><span style=\\"color:#ffd700;\\">── RUNTIME ERRORS ──────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-1001</span> <span style=\\"color:#888;\\">NULL/UNDEFINED READ</span><br><span style=\\"color:#ff6666;\\">SB-1002</span> <span style=\\"color:#888;\\">MISSING FUNCTION</span><br><span style=\\"color:#ff6666;\\">SB-1003</span> <span style=\\"color:#888;\\">UNDEFINED VARIABLE</span><br><span style=\\"color:#ff6666;\\">SB-1004</span> <span style=\\"color:#888;\\">TEMPORAL DEAD ZONE</span><br><span style=\\"color:#ff6666;\\">SB-1005</span> <span style=\\"color:#888;\\">INFINITE RECURSION</span><br><span style=\\"color:#ff6666;\\">SB-1006</span> <span style=\\"color:#888;\\">OUT OF MEMORY</span><br><span style=\\"color:#ff6666;\\">SB-1007</span> <span style=\\"color:#888;\\">PARTICLE SPAWN FAILED</span><br><span style=\\"color:#ff6666;\\">SB-1008</span> <span style=\\"color:#888;\\">PARTICLE UPDATE FAILED</span><br><span style=\\"color:#ff6666;\\">SB-1009</span> <span style=\\"color:#888;\\">HIT-STOP FAILURE</span><br><span style=\\"color:#ff8844;\\">SB-1010</span> <span style=\\"color:#888;\\">GAME LOOP CRASH</span><br><span style=\\"color:#ffd700;\\">── RENDER ERRORS ─────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-2001</span> <span style=\\"color:#888;\\">CANVAS CONTEXT LOST</span><br><span style=\\"color:#ff6666;\\">SB-2002</span> <span style=\\"color:#888;\\">DRAW IMAGE FAILED</span><br><span style=\\"color:#ff6666;\\">SB-2003</span> <span style=\\"color:#888;\\">GRADIENT ERROR</span><br><span style=\\"color:#ff6666;\\">SB-2004</span> <span style=\\"color:#888;\\">CANVAS STATE CORRUPT</span><br><span style=\\"color:#ff6666;\\">SB-2005</span> <span style=\\"color:#888;\\">INVALID CANVAS DIMS</span><br><span style=\\"color:#ff6666;\\">SB-2006</span> <span style=\\"color:#888;\\">SHOCKWAVE RENDER FAILED</span><br><span style=\\"color:#ff6666;\\">SB-2007</span> <span style=\\"color:#888;\\">COMBO POPUP FAILED</span><br><span style=\\"color:#ff6666;\\">SB-2008</span> <span style=\\"color:#888;\\">TUTORIAL HUD FAILED</span><br><span style=\\"color:#ff6666;\\">SB-2009</span> <span style=\\"color:#888;\\">SUNRISE CUTSCENE FAILED</span><br><span style=\\"color:#ff8844;\\">SB-2010</span> <span style=\\"color:#888;\\">RENDER LOOP CRASH</span><br><span style=\\"color:#33ff66;\\">SB-2026</span> <span style=\\"color:#888;\\">DEV TEST</span><br><span style=\\"color:#ffd700;\\">── GAMEPLAY ERRORS ───────────────────</span><br><span style=\\"color:#ff6666;\\">SB-3001</span> <span style=\\"color:#888;\\">KNOCKBACK SYSTEM</span><br><span style=\\"color:#ff6666;\\">SB-3002</span> <span style=\\"color:#888;\\">CPU AI CRASH</span><br><span style=\\"color:#ff6666;\\">SB-3003</span> <span style=\\"color:#888;\\">DEATH DETECTION</span><br><span style=\\"color:#ff6666;\\">SB-3004</span> <span style=\\"color:#888;\\">HYPER SYSTEM</span><br><span style=\\"color:#ff6666;\\">SB-3005</span> <span style=\\"color:#888;\\">ATTACK SYSTEM</span><br><span style=\\"color:#ff6666;\\">SB-3006</span> <span style=\\"color:#888;\\">SPECIAL MOVE SYSTEM</span><br><span style=\\"color:#ff6666;\\">SB-3007</span> <span style=\\"color:#888;\\">TUTORIAL FIGHT LOGIC</span><br><span style=\\"color:#ff8844;\\">SB-3010</span> <span style=\\"color:#888;\\">COMBAT CRASH</span><br><span style=\\"color:#ffd700;\\">── MODE ERRORS ───────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-4001</span> <span style=\\"color:#888;\\">STORY MODE</span><br><span style=\\"color:#ff6666;\\">SB-4002</span> <span style=\\"color:#888;\\">HORDE MODE</span><br><span style=\\"color:#ff6666;\\">SB-4003</span> <span style=\\"color:#888;\\">TOURNAMENT</span><br><span style=\\"color:#ff6666;\\">SB-4004</span> <span style=\\"color:#888;\\">SPACECRAFT</span><br><span style=\\"color:#ff6666;\\">SB-4005</span> <span style=\\"color:#888;\\">TUTORIAL FIGHT STARTUP</span><br><span style=\\"color:#ffd700;\\">── SYSTEM ERRORS ─────────────────────</span><br><span style=\\"color:#ff6666;\\">SB-5001</span> <span style=\\"color:#888;\\">AUDIO</span><br><span style=\\"color:#ff6666;\\">SB-5002</span> <span style=\\"color:#888;\\">SAVE DATA</span><br><span style=\\"color:#ff6666;\\">SB-5003</span> <span style=\\"color:#888;\\">PARSE ERROR</span><br><span style=\\"color:#ff6666;\\">SB-5004</span> <span style=\\"color:#888;\\">SFX TONE FAILED</span><br><span style=\\"color:#ff6666;\\">SB-5005</span> <span style=\\"color:#888;\\">SFX NOISE FAILED</span><br><span style=\\"color:#ffd700;\\">── META / PROGRESSION ERRORS ─────────</span><br><span style=\\"color:#ff6666;\\">SB-6001</span> <span style=\\"color:#888;\\">ACHIEVEMENT CHECK FAILED</span><br><span style=\\"color:#ff6666;\\">SB-6002</span> <span style=\\"color:#888;\\">SETTINGS LOCK FAILED</span><br><span style=\\"color:#ff6666;\\">SB-6003</span> <span style=\\"color:#888;\\">WEEKLY EVENT FAILED</span><br><span style=\\"color:#ff6666;\\">SB-6004</span> <span style=\\"color:#888;\\">BRAWL CODE REDEEM FAILED</span><br><span style=\\"color:#ff6666;\\">SB-6005</span> <span style=\\"color:#888;\\">BRAWL CODE GEN FAILED</span><br><span style=\\"color:#ff6666;\\">SB-6006</span> <span style=\\"color:#888;\\">COMPLETION % FAILED</span><br><span style=\\"color:#ff8844;\\">SB-9999</span> <span style=\\"color:#888;\\">UNKNOWN ERROR</span></span>';
         _el.appendChild(_d);
         _el.scrollTop=_el.scrollHeight;
       }
@@ -8797,7 +9250,7 @@ function scStartCombatBattle(f){
       }
     };
 
-    game={p1,p2,plats,stage:selStage,timer:0,projs:[],particles:[],flash:0,bgOff:0,shockwaves:[],dmgFloats:[]};
+    game={p1,p2,plats,stage:selStage,timer:0,projs:[],particles:[],flash:0,bgOff:0,shockwaves:[],dmgFloats:[],scCombat:true};
     const _scP1=p1,_scP2=p2,_scAC=alienChar;
     document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
     document.getElementById('controls-hint').classList.remove('hidden');
